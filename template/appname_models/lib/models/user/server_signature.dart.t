@@ -7,12 +7,12 @@ import 'package:dart_mappable/dart_mappable.dart';
 part 'server_signature.mapper.dart';
 
 @MappableClass()
-class OccultSignature with OccultSignatureMappable {
+class AppNameSignature with AppNameSignatureMappable {
   final String signature;
   final String session;
   final int time;
 
-  OccultSignature({
+  AppNameSignature({
     required this.signature,
     required this.session,
     required this.time,
@@ -38,7 +38,7 @@ class OccultSignature with OccultSignatureMappable {
         List.generate(128, (i) => random.nextInt(256)).toList());
   }
 
-  static OccultSignatureSignature newSignature() => OccultSignatureSignature(
+  static AppNameSignatureSignature newSignature() => AppNameSignatureSignature(
         signature: randomSignature,
         session: sessionId,
         time: DateTime.timestamp().millisecondsSinceEpoch,

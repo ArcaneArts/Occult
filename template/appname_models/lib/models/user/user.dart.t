@@ -5,7 +5,7 @@ import 'package:fire_crud/fire_crud.dart';
 part 'user.mapper.dart';
 
 @MappableClass()
-class OccultUser with OccultUserMappable, ModelCrud {
+class AppNameUser with AppNameUserMappable, ModelCrud {
   final String firstName;
   final String lastName;
   final String email;
@@ -13,7 +13,7 @@ class OccultUser with OccultUserMappable, ModelCrud {
   final DateTime signedUpDate;
   final DateTime lastLogin;
 
-  OccultUser({
+  AppNameUser({
     required this.registered,
     required this.firstName,
     required this.lastName,
@@ -26,19 +26,19 @@ class OccultUser with OccultUserMappable, ModelCrud {
 
   @override
   List<FireModel<ModelCrud>> get childModels => [
-        FireModel<OccultCapabilities>(
+        FireModel<AppNameUserCapabilities>(
           collection: "data",
           exclusiveDocumentId: "capabilities",
           toMap: (m) => m.toMap(),
-          fromMap: (m) => OccultCapabilitiesMapper.fromMap(m),
-          model: OccultCapabilities(),
+          fromMap: (m) => AppNameUserCapabilitiesMapper.fromMap(m),
+          model: AppNameUserCapabilities(),
         ),
-        FireModel<OccultUserSettings>(
+        FireModel<AppNameUserSettings>(
           collection: "data",
           exclusiveDocumentId: "settings",
           toMap: (m) => m.toMap(),
-          fromMap: (m) => OccultUserSettingsMapper.fromMap(m),
-          model: OccultUserSettings(),
+          fromMap: (m) => AppNameUserSettingsMapper.fromMap(m),
+          model: AppNameUserSettings(),
         ),
       ];
 }

@@ -5,32 +5,32 @@ import 'package:fire_crud/fire_crud.dart';
 part 'user_settings.mapper.dart';
 
 @MappableClass()
-class OccultUserSettings with OccultUserSettingsMappable, ModelCrud {
+class AppNameUserSettings with AppNameUserSettingsMappable, ModelCrud {
   final String? theme;
-  final List<OccultSignature> serverSignatures;
+  final List<AppNameSignature> serverSignatures;
   final String? aiModel;
 
-  OccultUserSettings({
+  AppNameUserSettings({
     this.theme,
     this.serverSignatures = const [],
     this.aiModel,
   });
 
   bool get hasValidForgeSignature => serverSignatures.any((i) =>
-      i.session == OccultSignature.sessionId &&
+      i.session == AppNameSignature.sessionId &&
       DateTime.timestamp().millisecondsSinceEpoch - i.time <
           Duration(minutes: 5).inMilliseconds);
 
-  OccultSignature get anyValidForgeSignature =>
+  AppNameSignature get anyValidForgeSignature =>
       serverSignatures.firstWhere((i) =>
-          i.session == OccultSignature.sessionId &&
+          i.session == AppNameSignature.sessionId &&
           DateTime.timestamp().millisecondsSinceEpoch - i.time <
               Duration(minutes: 5).inMilliseconds);
 
-  Future<OccultSignature> get clientForgeSignature async {
+  Future<AppNameSignature> get clientForgeSignature async {
     if (!hasValidForgeSignature) {
-      OccultSignature sig = OccultSignature.newSignature();
-      await setSelfAtomic<OccultSignature>(
+      AppNameSignature sig = AppNameSignature.newSignature();
+      await setSelfAtomic<AppNameSignature>(
           (u) => u!.copyWith(serverSignatures: [
                 ...serverSignatures.where((i) =>
                     DateTime.timestamp().millisecondsSinceEpoch - i.time >

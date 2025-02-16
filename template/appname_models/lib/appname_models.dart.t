@@ -10,11 +10,11 @@ export 'package:appname_models:models/user/user_settings.dart';
 
 void $registerModels() {
   $crud
-    ..registerModel(FireModel<OccultUser>(
+    ..registerModel(FireModel<AppNameUser>(
       collection: "user",
       toMap: (t) => t.toMap(),
-      fromMap: (map) => OccultUserMapper.fromMap(map),
-      model: OccultUser(
+      fromMap: (map) => AppNameUserMapper.fromMap(map),
+      model: AppNameUser(
         email: '',
         firstName: '',
         lastName: '',
