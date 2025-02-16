@@ -63,7 +63,77 @@ void confirmMain(String message) {
 
 @cliRunner
 class OccultRunner extends _$OccultRunner {
-  @cliCommand
+  @CliCommand(
+      name: 'run',
+      description:
+          "Runs a target such as the server. You need to specify at least one target")
+  Future<void> runn(
+      {
+      /// Runs the server locally at localhost:8080 and will terminate if occult is terminated (ctrl+c)
+      bool server = false}) async {
+    if (server) {
+      print("Run Server");
+    }
+  }
+
+  @CliCommand(
+      description:
+          "Deploys a target such as the server or web app. You need to specify at least one target")
+  Future<void> deploy({
+    /// Deploys the docker image for the server to google cloud & releases it
+    bool server = false,
+
+    /// Deploys the beta web app to firebase hosting
+    bool web = false,
+
+    /// Deploys the release web app to firebase hosting
+    bool webRelease = false,
+  }) async {}
+
+  @CliCommand(
+      description: "Builds a target. You need to specify at least one target")
+  Future<void> build(
+      {
+      /// Builds the dev server into a local docker image
+      bool server = false,
+
+      /// Builds the release server into a local docker image & uploads it to GCP artifact registry without releasing it
+      bool serverRelease = false,
+
+      /// Builds the web app in release mode
+      bool web = false,
+
+      /// Builds an android APK for the app in release mode
+      bool apk = false,
+
+      /// Builds the ios app in release mode
+      bool ios = false,
+
+      /// Builds the macos app in release mode
+      bool macos = false,
+
+      /// Builds the windows app in release mode
+      bool windows = false,
+
+      /// Builds the linux app in release mode
+      bool linux = false,
+
+      /// Builds the app bundle for android in release mode
+      bool appbundle = false,
+
+      /// Builds the launcher icons generator for the app
+      bool launcherIcons = false,
+
+      /// Builds the oss licenses generator for the app
+      bool oss = false,
+
+      /// Builds the models for the app & server in the models project
+      bool models = false,
+
+      /// Builds the splash screen generator for the app
+      bool splashScreen = false}) async {}
+
+  @CliCommand(description: "Creates a new project in the current directory")
   Future<void> create() async {
     if (!await ensureShitInstalled()) {
       exit(0);
