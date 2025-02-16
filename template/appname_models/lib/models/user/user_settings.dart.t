@@ -30,7 +30,7 @@ class AppNameUserSettings with AppNameUserSettingsMappable, ModelCrud {
   Future<AppNameSignature> get clientForgeSignature async {
     if (!hasValidForgeSignature) {
       AppNameSignature sig = AppNameSignature.newSignature();
-      await setSelfAtomic<AppNameSignature>(
+      await setSelfAtomic<HotSteamyWomenUserSettings>(
           (u) => u!.copyWith(serverSignatures: [
                 ...serverSignatures.where((i) =>
                     DateTime.timestamp().millisecondsSinceEpoch - i.time >

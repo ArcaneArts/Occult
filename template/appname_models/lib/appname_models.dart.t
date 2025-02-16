@@ -1,12 +1,12 @@
 library caremap_models;
 
-import 'package:appname_models:models/user/user.dart';
+import 'models/user/user.dart';
 import 'package:fire_crud/fire_crud.dart';
 
-export 'package:appname_models:models/user/server_signature.dart';
-export 'package:appname_models:models/user/user.dart';
-export 'package:appname_models:models/user/user_capabilities.dart';
-export 'package:appname_models:models/user/user_settings.dart';
+export 'models/user/server_signature.dart';
+export 'models/user/user.dart';
+export 'models/user/user_capabilities.dart';
+export 'models/user/user_settings.dart';
 
 void $registerModels() {
   $crud

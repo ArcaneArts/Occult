@@ -38,7 +38,7 @@ class AppNameSignature with AppNameSignatureMappable {
         List.generate(128, (i) => random.nextInt(256)).toList());
   }
 
-  static AppNameSignatureSignature newSignature() => AppNameSignatureSignature(
+  static AppNameSignature newSignature() => AppNameSignature(
         signature: randomSignature,
         session: sessionId,
         time: DateTime.timestamp().millisecondsSinceEpoch,
