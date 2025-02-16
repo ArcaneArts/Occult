@@ -7,30 +7,29 @@ part 'user_settings.mapper.dart';
 @MappableClass()
 class AppNameUserSettings with AppNameUserSettingsMappable, ModelCrud {
   final String? theme;
+  /// This is needed to ensure that the user can request the server
   final List<AppNameSignature> serverSignatures;
-  final String? aiModel;
 
   AppNameUserSettings({
     this.theme,
     this.serverSignatures = const [],
-    this.aiModel,
   });
 
-  bool get hasValidForgeSignature => serverSignatures.any((i) =>
+  bool get hasValidAppNameSignature => serverSignatures.any((i) =>
       i.session == AppNameSignature.sessionId &&
       DateTime.timestamp().millisecondsSinceEpoch - i.time <
           Duration(minutes: 5).inMilliseconds);
 
-  AppNameSignature get anyValidForgeSignature =>
+  AppNameSignature get anyValidAppNameSignature =>
       serverSignatures.firstWhere((i) =>
           i.session == AppNameSignature.sessionId &&
           DateTime.timestamp().millisecondsSinceEpoch - i.time <
               Duration(minutes: 5).inMilliseconds);
 
-  Future<AppNameSignature> get clientForgeSignature async {
-    if (!hasValidForgeSignature) {
+  Future<AppNameSignature> get clientAppNameSignature async {
+    if (!hasValidAppNameSignature) {
       AppNameSignature sig = AppNameSignature.newSignature();
-      await setSelfAtomic<HotSteamyWomenUserSettings>(
+      await setSelfAtomic<AppNameUserSettings>(
           (u) => u!.copyWith(serverSignatures: [
                 ...serverSignatures.where((i) =>
                     DateTime.timestamp().millisecondsSinceEpoch - i.time >
@@ -40,7 +39,7 @@ class AppNameUserSettings with AppNameUserSettingsMappable, ModelCrud {
       return sig;
     }
 
-    return anyValidForgeSignature;
+    return anyValidAppNameSignature;
   }
 
   @override

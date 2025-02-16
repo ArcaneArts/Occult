@@ -6,6 +6,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 
 part 'server_signature.mapper.dart';
 
+/// This is used to validate requests to the server piggy backing off of firestore security
 @MappableClass()
 class AppNameSignature with AppNameSignatureMappable {
   final String signature;

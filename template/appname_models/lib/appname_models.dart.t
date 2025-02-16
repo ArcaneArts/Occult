@@ -10,6 +10,7 @@ export 'models/user/user_settings.dart';
 
 void $registerModels() {
   $crud
+    // Register your own models here
     ..registerModel(FireModel<AppNameUser>(
       collection: "user",
       toMap: (t) => t.toMap(),

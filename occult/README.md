@@ -1,0 +1,1 @@
+Occult is a cli dart executable which makes it easy to setup a dart server running flutter for server-rendering capabilities along with a flutter app + models linked between all with firebase. 

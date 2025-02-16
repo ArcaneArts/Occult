@@ -1,5 +1,5 @@
 # Build the Server
-FROM --platform=linux/amd64 dart:stable AS caremap-builder
+FROM --platform=linux/amd64 dart:stable AS appname-builder
 ENV FLUTTER_HOME=/flutter
 ENV PATH=$FLUTTER_HOME/bin:$PATH
 
@@ -17,7 +17,7 @@ RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME && \
 # Build the project
 WORKDIR /app
 COPY pubspec.* ./
-COPY subpackages ./subpackages
+COPY appname_models ../appname_models
 COPY . .
 RUN flutter pub get
 RUN flutter build linux --release
@@ -77,8 +77,8 @@ RUN apt-get update && apt-get install -y \
 COPY --from=imagemagick-builder /usr/local /usr/local
 RUN ldconfig
 WORKDIR /app
-COPY --from=caremap-builder /app/build/linux/x64/release/bundle ./bundle
-COPY --from=caremap-builder /app/ffi/libimage_magick_ffi.so ./bundle
+COPY --from=appname-builder /app/build/linux/x64/release/bundle ./bundle
+COPY --from=appname-builder /app/ffi/libimage_magick_ffi.so ./bundle
 
 # Link libraries to LD path so they are visible on linux
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib:
