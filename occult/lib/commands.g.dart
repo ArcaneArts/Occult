@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'occult.dart';
+part of 'commands.dart';
 
 // **************************************************************************
 // CliRunnerGenerator
