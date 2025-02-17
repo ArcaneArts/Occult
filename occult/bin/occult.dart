@@ -50,6 +50,10 @@ void instruct(String message) {
   print(message.spin(0xfff49e, 0xffdd9e).chatColor);
 }
 
+void success(String message) {
+  print(message.spin(0x4287f5, 0x9342f5).chatColor);
+}
+
 void confirmMain(String message) {
   if (!Confirm.withTheme(
           theme: theme,
@@ -71,8 +75,23 @@ class OccultRunner extends _$OccultRunner {
       {
       /// Runs the server locally at localhost:8080 and will terminate if occult is terminated (ctrl+c)
       bool server = false}) async {
+    OccultConfiguration? config = await findOccultConfiguration();
+
+    if (config == null) {
+      instruct(
+          "No Occult Configuration Found in this directory or its parent or its grandparent!");
+      exit(0);
+    }
+    bool ran = false;
     if (server) {
-      print("Run Server");
+      success("Running Development Server in ${config.name}_server");
+      await runDevServer(config);
+      success("Ran Development Server in ${config.name}_server");
+    }
+
+    if (!ran) {
+      instruct(
+          "No targets were specified to build. Try occult build -h for help.");
     }
   }
 
@@ -81,14 +100,34 @@ class OccultRunner extends _$OccultRunner {
           "Deploys a target such as the server or web app. You need to specify at least one target")
   Future<void> deploy({
     /// Deploys the docker image for the server to google cloud & releases it
-    bool server = false,
+    bool serverRelease = false,
 
     /// Deploys the beta web app to firebase hosting
     bool web = false,
 
     /// Deploys the release web app to firebase hosting
     bool webRelease = false,
-  }) async {}
+  }) async {
+    OccultConfiguration? config = await findOccultConfiguration();
+    if (config == null) {
+      instruct(
+          "No Occult Configuration Found in this directory or its parent or its grandparent!");
+      exit(0);
+    }
+    bool ran = false;
+    if (serverRelease) {
+      success(
+          "Deploying Release Server in ${config.name}_server with Dockerfile-dev");
+      await deployProdServer(config);
+      success("Deployed Release Server in ${config.name}_server");
+      ran = true;
+    }
+
+    if (!ran) {
+      instruct(
+          "No targets were specified to deploy. Try occult build -h for help.");
+    }
+  }
 
   @CliCommand(
       description: "Builds a target. You need to specify at least one target")
@@ -131,7 +170,43 @@ class OccultRunner extends _$OccultRunner {
       bool models = false,
 
       /// Builds the splash screen generator for the app
-      bool splashScreen = false}) async {}
+      bool splashScreen = false}) async {
+    OccultConfiguration? config = await findOccultConfiguration();
+    if (config == null) {
+      instruct(
+          "No Occult Configuration Found in this directory or its parent or its grandparent!");
+      exit(0);
+    }
+    bool ran = false;
+    if (models) {
+      success("Building Models in ${config.name}_models");
+      await buildModels(config);
+      success("Built Models in ${config.name}_models");
+      ran = true;
+    }
+
+    if (server) {
+      success(
+          "Building Development Server in ${config.name}_server with Dockerfile-dev");
+      await buildDevServer(config);
+      success("Built Development Server in ${config.name}_server");
+      ran = true;
+    }
+
+    if (serverRelease) {
+      success(
+          "Deploying Release Server in ${config.name}_server to GCP Artifact Registry");
+      await buildProdServer(config);
+      success(
+          "Deployed Release Server in ${config.name}_server to GCP Artifact Registry");
+      ran = true;
+    }
+
+    if (!ran) {
+      instruct(
+          "No targets were specified to build. Try occult build -h for help.");
+    }
+  }
 
   @CliCommand(description: "Creates a new project in the current directory")
   Future<void> create() async {
@@ -209,6 +284,29 @@ class OccultRunner extends _$OccultRunner {
 
     instruct("Service Account Key Found!");
     instruct("  $sak");
+
+    instruct(
+        "Create an Artifact Registry Repository at https://console.cloud.google.com/artifacts/create-repo?project=${firebaseProjectID}&hl=en");
+    instruct("Name: cloud-run-source-deploy");
+    instruct("Format: Docker");
+    instruct("Mode: Standard");
+    instruct("Location: Region");
+    instruct("Region: us-central1 (Iowa)");
+    instruct("Encryption: Google-managed key");
+    instruct("Immutable image tags: Disabled");
+    instruct("Cleanup Policies: Delete artifacts");
+    confirmMain(
+        "4.6. Fill out the new repository screen, then click ADD A CLEANUP POLICY");
+    instruct("Name: Autoclean");
+    instruct("Policy Type: Keep most recent versions");
+    instruct("Keep Count: 2");
+    confirmMain(
+        "4.7. Press done on the cleanup policy, then ADD ANOTHER CLEANUP POLICY");
+    instruct("Name: Autodelete");
+    instruct("Policy Type: Conditional Delete");
+    instruct("Tag State: Any Tag State");
+    confirmMain(
+        "4.8. Press done on the cleanup policy, then CREATE REPOSITORY");
 
     String appDomainOrg = Input(
       prompt:
@@ -374,6 +472,40 @@ Future<bool> ensureShitInstalled() async {
       dockerInstalled;
 }
 
+class OccultConfiguration {
+  final String path;
+  final String name;
+  final String org;
+  final String firebaseProjectId;
+  final String baseClassName;
+
+  OccultConfiguration({
+    required this.path,
+    required this.name,
+    required this.org,
+    required this.firebaseProjectId,
+    required this.baseClassName,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'organization': org,
+      'id': firebaseProjectId,
+      'className': baseClassName,
+    };
+  }
+
+  factory OccultConfiguration.fromJson(String path, Map<String, dynamic> json) {
+    return OccultConfiguration(
+        path: path,
+        name: json['name'],
+        org: json['organization'],
+        firebaseProjectId: json['id'],
+        baseClassName: json['className']);
+  }
+}
+
 Future<void> setupAll(
     {required String name,
     required String org,
@@ -415,6 +547,259 @@ Future<void> setupAll(
   await deleteFolder("${name}_models${Platform.pathSeparator}test");
   await deleteFolder("${name}${Platform.pathSeparator}test");
   await deleteFolder("${name}_server${Platform.pathSeparator}test");
+  await createOccultConfig(
+    name: name,
+    org: org,
+    firebaseProjectId: firebaseProjectId,
+    baseClassName: baseClassName,
+  );
+}
+
+Future<void> interactive(String command, List<String> args,
+    [String? runIn]) async {
+  final process = await Process.start(
+    command,
+    args,
+    mode: ProcessStartMode.inheritStdio,
+    workingDirectory: runIn,
+  );
+
+  int exitCode = await process.exitCode;
+
+  if (exitCode != 0) {
+    throw Exception("Failed to process $command ${args.join(" ")} in $runIn");
+  }
+}
+
+Future<void> buildProdServer(OccultConfiguration config) async {
+  await interactive(
+      "cp",
+      ["-r", "../${config.name}_models", "${config.name}_models"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive("flutter", ["pub", "get"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive("flutter", ["pub", "get"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+  await interactive("rm", ["-rf", ".dart_tool"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+  await interactive(
+      "docker",
+      [
+        "build",
+        "--platform",
+        "linux/amd64",
+        "-t",
+        "us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest",
+        "."
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive(
+      "rm",
+      [
+        "-rf",
+        "${config.name}_models",
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+
+  await interactive("gcloud", ["auth", "configure-docker", "us-central1"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive(
+      "docker",
+      [
+        "push",
+        "--platform",
+        "linux/amd64",
+        "us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest"
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+}
+
+Future<void> deployProdServer(OccultConfiguration config) async {
+  await interactive(
+      "cp",
+      ["-r", "../${config.name}_models", "${config.name}_models"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive("flutter", ["pub", "get"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive("flutter", ["pub", "get"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+  await interactive("rm", ["-rf", ".dart_tool"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+  await interactive(
+      "docker",
+      [
+        "build",
+        "--platform",
+        "linux/amd64",
+        "-t",
+        "us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest",
+        "."
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive(
+      "rm",
+      [
+        "-rf",
+        "${config.name}_models",
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+
+  await interactive("gcloud", ["auth", "configure-docker", "us-central1"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive(
+      "docker",
+      [
+        "push",
+        "--platform",
+        "linux/amd64",
+        "us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest"
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive(
+      "gcloud",
+      [
+        "beta",
+        "run",
+        "deploy",
+        "${config.name}-server",
+        "--project=${config.firebaseProjectId}",
+        "--image=us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest",
+        "--min-instances=0",
+        "--memory",
+        "2Gi",
+        "--cpu",
+        "2",
+        "--concurrency",
+        "4",
+        "--cpu-boost"
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+}
+
+Future<void> runDevServer(OccultConfiguration config) async {
+  await interactive(
+      "cp",
+      ["-r", "../${config.name}_models", "${config.name}_models"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive("flutter", ["pub", "get"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive("flutter", ["pub", "get"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+  await interactive("rm", ["-rf", ".dart_tool"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+  await interactive(
+      "docker",
+      [
+        "build",
+        "--platform",
+        "linux/amd64",
+        "-t",
+        "${config.name}-dev",
+        "-f",
+        "Dockerfile-dev",
+        "."
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive(
+      "rm",
+      [
+        "-rf",
+        "${config.name}_models",
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive(
+      "docker",
+      [
+        "run",
+        "--platform",
+        "linux/amd64",
+        "-it",
+        "--init",
+        "--rm",
+        "-p",
+        "8080:8080",
+        "${config.name}-dev",
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+}
+
+Future<void> buildDevServer(OccultConfiguration config) async {
+  await interactive(
+      "cp",
+      ["-r", "../${config.name}_models", "${config.name}_models"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive("flutter", ["pub", "get"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive("flutter", ["pub", "get"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+  await interactive("rm", ["-rf", ".dart_tool"],
+      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+  await interactive(
+      "docker",
+      [
+        "build",
+        "--platform",
+        "linux/amd64",
+        "-t",
+        "${config.name}-dev",
+        "-f",
+        "Dockerfile-dev",
+        "."
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+  await interactive(
+      "rm",
+      [
+        "-rf",
+        "${config.name}_models",
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}_server");
+}
+
+Future<void> buildModels(OccultConfiguration config) async {
+  final process = await Process.start(
+    'dart',
+    ['run', "build_runner", "build", "--delete-conflicting-outputs"],
+    mode: ProcessStartMode.inheritStdio,
+    workingDirectory:
+        "${config.path}${Platform.pathSeparator}${config.name}_models",
+  );
+
+  int exitCode = await process.exitCode;
+
+  if (exitCode != 0) {
+    throw Exception(
+        "Failed to run build_runner build on ${config.name}_models");
+  }
+}
+
+Future<OccultConfiguration?> findOccultConfiguration() async {
+  Directory d = Directory.current;
+  OccultConfiguration? config = await getOccultConfiguration(d.path);
+  if (config != null) return config;
+  instruct("* Failed to find occult configuration in ${d.path}");
+  config = await getOccultConfiguration(d.parent.path);
+  if (config != null) return config;
+  instruct("* Failed to find occult configuration in ${d.parent.path}");
+  config = await getOccultConfiguration(d.parent.parent.path);
+  if (config != null) return config;
+  instruct("* Failed to find occult configuration in ${d.parent.parent.path}");
+  return null;
+}
+
+Future<OccultConfiguration?> getOccultConfiguration(String path) async {
+  File f = File(
+      "${path}/config/occult.json".replaceAll("/", Platform.pathSeparator));
+
+  if (await f.exists()) {
+    OccultConfiguration configuration =
+        OccultConfiguration.fromJson(path, jsonDecode(await f.readAsString()));
+    success(
+        "Found Occult Configuration ${configuration.baseClassName}, ${configuration.firebaseProjectId}");
+    return configuration;
+  }
+
+  return null;
 }
 
 bool _debugFailures = false;
@@ -768,6 +1153,28 @@ service firebase.storage {
 }
       """
           .trim());
+  creatingLoader.done();
+}
+
+Future<void> createOccultConfig(
+    {required String name,
+    required String org,
+    required String firebaseProjectId,
+    required String baseClassName}) async {
+  final creatingLoader = Spinner(
+    icon: '✔'.padRight(2).green(),
+    leftPrompt: (done) => '',
+    rightPrompt: (done) => done
+        ? 'Created occult config'.spin(0x7dff7f, 0x03fc6b).chatColor
+        : 'Creating occult config'.spin(0xd303fc, 0xfc03c6).chatColor,
+  ).interact();
+  await File("config${Platform.pathSeparator}occult.json")
+      .writeAsString(JsonEncoder.withIndent("  ").convert({
+    "name": name,
+    "organization": org,
+    "id": firebaseProjectId,
+    "className": baseClassName,
+  }));
   creatingLoader.done();
 }
 

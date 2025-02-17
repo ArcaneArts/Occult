@@ -21,6 +21,12 @@
       <excludeFolder url="file://$MODULE_DIR$/test/myguide_models/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/test/myguide_models/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/test/myguide_models/build" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fury_models/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fury_models/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fury_models/build" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fury_server/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fury_server/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/test/fury_server/build" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Dart SDK" level="project" />
