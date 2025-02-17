@@ -78,7 +78,7 @@ class DeployCommand extends Command<void> {
   DeployCommand(this.userMethod) {
     argParser
       ..addFlag(
-        'server',
+        'server-release',
         defaultsTo: false,
       )
       ..addFlag(
@@ -92,7 +92,7 @@ class DeployCommand extends Command<void> {
   }
 
   final Future<void> Function({
-    bool server,
+    bool serverRelease,
     bool web,
     bool webRelease,
   }) userMethod;
@@ -108,7 +108,7 @@ class DeployCommand extends Command<void> {
   Future<void> run() {
     final results = argResults!;
     return userMethod(
-      server: (results['server'] as bool?) ?? false,
+      serverRelease: (results['server-release'] as bool?) ?? false,
       web: (results['web'] as bool?) ?? false,
       webRelease: (results['web-release'] as bool?) ?? false,
     );
