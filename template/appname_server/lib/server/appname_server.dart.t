@@ -50,9 +50,6 @@ class AppNameServer implements Routing {
 
   Future<void> _startServices() async {
     svcStorage = StorageService();
-    svcAI = AIService();
-    svcRecord = RecordService();
-    svcChat = ChatService();
     await Future.wait([svcStorage.start(), _startMagick()]);
     verbose("Services Online");
   }
