@@ -1259,7 +1259,6 @@ Future<void> setupModelsDependencies(String name) async {
         "fire_crud",
         "toxic",
         "rxdart",
-        "threshold",
         "rxdart",
         "fast_log",
         "fire_api",
