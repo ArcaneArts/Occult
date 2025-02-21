@@ -547,6 +547,7 @@ Future<void> patchAppPubspec(String name) async {
   YamlEditor app = YamlEditor(
       File("$name${Platform.pathSeparator}pubspec.yaml").readAsStringSync());
   app.update(["flutter"], doc["flutter"]);
+  app.update(["flutter_native_splash"], value)
   File("$name${Platform.pathSeparator}pubspec.yaml")
       .writeAsStringSync(app.toString().replaceAll("\\/", "/"));
 

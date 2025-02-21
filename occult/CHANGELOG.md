@@ -1,3 +1,6 @@
+# 0.0.1-dev.4
+* Drop native splash gen for now until robust yaml gen available
+
 # 0.0.1-dev.3
 * Drop threshold
 
