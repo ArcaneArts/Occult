@@ -158,7 +158,16 @@ class OccultRunner extends _$OccultRunner {
     }
 
     if (splashScreen) {
+      success("Building Splash Screen in ${config.name}");
       await runSplashGen(config);
+      success("Built Splash Screen in ${config.name}");
+      ran = true;
+    }
+
+    if (launcherIcons) {
+      success("Building Splash Screen in ${config.name}");
+      await runLauncherIconsGen(config);
+      success("Built Splash Screen in ${config.name}");
       ran = true;
     }
 

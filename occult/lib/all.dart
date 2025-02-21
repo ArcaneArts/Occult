@@ -181,7 +181,6 @@ Future<void> setupAll(
   await deleteFolder("${name}_models${Platform.pathSeparator}test");
   await deleteFolder("${name}${Platform.pathSeparator}test");
   await deleteFolder("${name}_server${Platform.pathSeparator}test");
-  await downloadIconAsset(project: name);
   await createOccultConfig(
     name: name,
     org: org,
@@ -197,6 +196,7 @@ Future<void> setupAll(
   );
   await firebaseDeployWeb(firebaseProjectId);
   await runSplashGen(config);
+  await runLauncherIconsGen(config);
 }
 
 Future<void> runSplashGen(OccultConfiguration config) async {
@@ -205,6 +205,16 @@ Future<void> runSplashGen(OccultConfiguration config) async {
       [
         "run",
         "flutter_native_splash:create",
+      ],
+      "${config.path}${Platform.pathSeparator}${config.name}");
+}
+
+Future<void> runLauncherIconsGen(OccultConfiguration config) async {
+  await interactive(
+      "dart",
+      [
+        "run",
+        "flutter_launcher_icons",
       ],
       "${config.path}${Platform.pathSeparator}${config.name}");
 }
@@ -547,7 +557,30 @@ Future<void> patchAppPubspec(String name) async {
   YamlEditor app = YamlEditor(
       File("$name${Platform.pathSeparator}pubspec.yaml").readAsStringSync());
   app.update(["flutter"], doc["flutter"]);
-  app.update(["flutter_native_splash"], value)
+  app.update(["flutter_native_splash"],
+      {"color": "#230055", "image": "assets/icon/splash.png"});
+  app.update([
+    "flutter_launcher_icons"
+  ], {
+    "ios": true,
+    "image_path": "assets/icon/icon.png",
+    "android": "launcher_icon",
+    "web": {"generate": true},
+    "windows": {"generate": true},
+    "macos": {"generate": true}
+  });
+  app.update([
+    "scripts"
+  ], {
+    "update_occult": "dart pub global activate occult",
+    "build_models": "occult build --models",
+    "build_launcher_icons": "occult build --launcher-icons",
+    "build_splash_screen": "occult build --splash-screen",
+    "run_server": "occult run --server",
+    "deploy_web_release": "occult deploy --web-release",
+    "deploy_web_beta": "occult deploy --web",
+    "deploy_server": "occult deploy --server-release"
+  });
   File("$name${Platform.pathSeparator}pubspec.yaml")
       .writeAsStringSync(app.toString().replaceAll("\\/", "/"));
 
@@ -649,6 +682,25 @@ Future<void> downloadTemplates(
 
   for (final file in archive) {
     if (file.isFile) {
+      List<String> comp = file.name.split("/");
+
+      if (comp.length > 1) {
+        comp = comp.sublist(1);
+      }
+
+      if (!file.name.endsWith(".t") &&
+          comp.isNotEmpty &&
+          comp.first == "assets") {
+        comp.remove(0);
+        File dest = File(
+            "$project${Platform.pathSeparator}${comp.join(Platform.pathSeparator)}");
+        await dest.parent.create(recursive: true);
+        final os = OutputFileStream(dest.path);
+        file.writeContent(os);
+        instruct("EXTR ${dest.path}");
+        continue;
+      }
+
       if (!file.name.endsWith(".t")) {
         continue;
       }
@@ -701,26 +753,6 @@ Future<void> downloadTemplates(
     }
   }
 
-  loader.done();
-}
-
-Future<void> downloadIconAsset({required String project}) async {
-  final loader = Spinner(
-    icon: '✔'.padRight(2).green(),
-    leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Acquired Arcane Icon Asset'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Acquiring Arcane Icon Asset'.spin(0xd303fc, 0xfc03c6).chatColor,
-  ).interact();
-  File f = File("${project}/assets/icon.png");
-  await f.parent.create(recursive: true);
-  instruct(
-      "Downloading Arcane Icon Asset in https://raw.githubusercontent.com/ArcaneArts/ArcaneArts/refs/heads/main/icon/bg_512.png");
-  await HttpClient()
-      .getUrl(Uri.parse(
-          "https://raw.githubusercontent.com/ArcaneArts/ArcaneArts/refs/heads/main/icon/bg_512.png"))
-      .then((request) => request.close())
-      .then((response) => response.pipe(f.openWrite()));
   loader.done();
 }
 
@@ -1187,6 +1219,19 @@ Future<void> setupAppDependencies(String name) async {
     print(p.stderr);
     print("---");
     throw Exception("Failed to install deps for $name");
+  }
+
+  p = await Process.run(
+      "flutter", ["pub", "add", "flutter_launcher_icons", "--dev"],
+      workingDirectory:
+          "${Directory.current.absolute.path}${Platform.pathSeparator}$name");
+  if (p.exitCode != 0) {
+    print("FAILED TO RUN PROCESS! ${p.exitCode}");
+    print(p.stdout);
+    print("---");
+    print(p.stderr);
+    print("---");
+    throw Exception("Failed to install dev deps for $name");
   }
 
   setupDependencies.done();

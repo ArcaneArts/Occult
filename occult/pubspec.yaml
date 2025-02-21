@@ -1,7 +1,7 @@
 name: occult
 description: A framework for a madman
 repository: https://github.com/ArcaneArts/Occult
-version: 0.0.1-dev.4
+version: 0.0.1-dev.5
 environment:
   sdk: ^3.6.1
 executables: 
