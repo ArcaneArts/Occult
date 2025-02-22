@@ -2,108 +2,27 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
-import 'package:chat_color/chat_color.dart';
 import 'package:interact/interact.dart';
 import 'package:occult/util.dart';
 import 'package:tint/tint.dart';
-import 'package:yaml/yaml.dart';
-import 'package:yaml_edit/yaml_edit.dart';
 
 void instruct(String message) {
-  print(message.spin(0xfff49e, 0xffdd9e).chatColor);
+  print(message.yellow());
 }
 
 void success(String message) {
-  print(message.spin(0x4287f5, 0x9342f5).chatColor);
+  print(message.green());
 }
 
 void confirmMain(String message) {
   if (!Confirm.withTheme(
           theme: theme,
-          prompt: message.spin(0x524fff, 0xd175ff).chatColor,
+          prompt: message,
           defaultValue: true,
           waitForNewLine: true)
       .interact()) {
     exit(0);
   }
-}
-
-Future<bool> ensureShitInstalled() async {
-  bool flutterInstalled = await harassInstallCLI(
-      tool: "flutter",
-      check: 'Checking if Flutter is setup'.spin(0xd303fc, 0xfc03c6).chatColor,
-      good: 'Flutter is setup at least'.spin(0x7dff7f, 0x03fc6b).chatColor,
-      bad:
-          'Flutter is not setup correctly. Idk fix your path bro. use which/where flutter'
-              .spin(0xeb5b34, 0xfa0060)
-              .chatColor);
-
-  bool dartInstalled = await harassInstallCLI(
-      tool: "dart",
-      check: 'Checking if Dart is setup (it really should be)'
-          .spin(0xd303fc, 0xfc03c6)
-          .chatColor,
-      good: 'Dart is setup (i would have been terrified if it wanst)'
-          .spin(0x7dff7f, 0x03fc6b)
-          .chatColor,
-      bad:
-          'I dont know how, I dont know why, but for some reason dart isnt setup correctly. Try which/where dart? idfk man.'
-              .spin(0xeb5b34, 0xfa0060)
-              .chatColor);
-
-  bool npmInstalled = await harassInstallCLI(
-      tool: "npm",
-      check: 'Checking if npm is installed'.spin(0xd303fc, 0xfc03c6).chatColor,
-      good: 'NPM is installed'.spin(0x7dff7f, 0x03fc6b).chatColor,
-      bad:
-          "${'NPM is not installed! Install v18+ it at '.spin(0xeb5b34, 0xfa0060)}&r@4&fhttps://nodejs.org/en&r"
-              .chatColor);
-
-  bool firebaseInstalled = await harassInstallCLI(
-      tool: "firebase",
-      check: 'Checking if Firebase CLI is installed'
-          .spin(0xd303fc, 0xfc03c6)
-          .chatColor,
-      good: 'Firebase CLI is installed'.spin(0x7dff7f, 0x03fc6b).chatColor,
-      bad:
-          "${'Firebase CLI is not installed! Install it with '.spin(0xeb5b34, 0xfa0060)}&r@4&fnpm install -g firebase-tools&r"
-              .chatColor);
-
-  bool flutterfireInstalled = await harassInstallCLI(
-      tool: "flutterfire",
-      check: 'Checking if FlutterFire is installed'
-          .spin(0xd303fc, 0xfc03c6)
-          .chatColor,
-      good: 'FlutterFire is installed'.spin(0x7dff7f, 0x03fc6b).chatColor,
-      bad:
-          "${'FlutterFire is not installed! Install it with '.spin(0xeb5b34, 0xfa0060)}&r@4&fdart pub global activate flutterfire_cli&r"
-              .chatColor);
-
-  bool gcloudInstalled = await harassInstallCLI(
-      tool: "gcloud",
-      check:
-          'Checking if gcloud is installed'.spin(0xd303fc, 0xfc03c6).chatColor,
-      good: 'gcloud is installed'.spin(0x7dff7f, 0x03fc6b).chatColor,
-      bad:
-          "${'gcloud is not installed! Install it at '.spin(0xeb5b34, 0xfa0060)}&r@4&fhttps://cloud.google.com/sdk/docs/install&r"
-              .chatColor);
-
-  bool dockerInstalled = await harassInstallCLI(
-      tool: "docker",
-      check:
-          'Checking if Docker is installed'.spin(0xd303fc, 0xfc03c6).chatColor,
-      good: 'Docker is installed'.spin(0x7dff7f, 0x03fc6b).chatColor,
-      bad:
-          "${'Docker is not installed! Install Docker Desktop it at '.spin(0xeb5b34, 0xfa0060)}&r@4&fhttps://www.docker.com/get-started/&r"
-              .chatColor);
-
-  return flutterInstalled &&
-      dartInstalled &&
-      firebaseInstalled &&
-      npmInstalled &&
-      flutterfireInstalled &&
-      gcloudInstalled &&
-      dockerInstalled;
 }
 
 class OccultConfiguration {
@@ -138,278 +57,6 @@ class OccultConfiguration {
         firebaseProjectId: json['id'],
         baseClassName: json['className']);
   }
-}
-
-Future<void> setupAll(
-    {required String name,
-    required String org,
-    required String firebaseProjectId,
-    required String baseClassName,
-    required String jsonfilename}) async {
-  await Directory("config${Platform.pathSeparator}firebase")
-      .create(recursive: true);
-  await runGcloudLogin();
-  await enableGcloudArtifactRegistry(firebaseProjectId);
-  await enableGcloudRun(firebaseProjectId);
-  await createFirebaseRC(firebaseProjectId);
-  await createFirebaseJson(firebaseProjectId, name);
-  await createFirebaseIndexesJson();
-  await createFirestoreRules();
-  await createStorageRules();
-  await createModelsPackage("${name}_models");
-  await createFlutterProject(name, org);
-  await createServerProject("${name}_server", name, org);
-  await addPathDependency(name, "${name}_models");
-  await addPathDependency("${name}_server", "${name}_models");
-  await patchAppPubspec(name);
-  await installLibMagick("${name}_server");
-  await runFirebaseLogin();
-  await runFlutterFireInteractive(firebaseProjectId, name);
-  await downloadTemplates(
-      project: name,
-      baseClassName: baseClassName,
-      firebaseprojectid: firebaseProjectId,
-      jsonfilename: jsonfilename);
-  await applyTemplate("${name}_models", baseClassName);
-  await runBuildRunner("${name}_models");
-  await applyTemplate(name, baseClassName);
-  await applyTemplate("${name}_server", baseClassName);
-  await copyFile(
-      "config/keys/$jsonfilename".replaceAll("/", Platform.pathSeparator),
-      "${name}_server/$jsonfilename".replaceAll("/", Platform.pathSeparator));
-  await deleteFolder(".occult");
-  await deleteFolder("${name}_models${Platform.pathSeparator}test");
-  await deleteFolder("${name}${Platform.pathSeparator}test");
-  await deleteFolder("${name}_server${Platform.pathSeparator}test");
-  await createOccultConfig(
-    name: name,
-    org: org,
-    firebaseProjectId: firebaseProjectId,
-    baseClassName: baseClassName,
-  );
-  OccultConfiguration config = OccultConfiguration(
-    name: name,
-    org: org,
-    firebaseProjectId: firebaseProjectId,
-    baseClassName: baseClassName,
-    path: Directory.current.path,
-  );
-  await firebaseDeployWeb(firebaseProjectId);
-  await runSplashGen(config);
-  await runLauncherIconsGen(config);
-}
-
-Future<void> runSplashGen(OccultConfiguration config) async {
-  await interactive(
-      "dart",
-      [
-        "run",
-        "flutter_native_splash:create",
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}");
-}
-
-Future<void> runLauncherIconsGen(OccultConfiguration config) async {
-  await interactive(
-      "dart",
-      [
-        "run",
-        "flutter_launcher_icons",
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}");
-}
-
-Future<void> firebaseDeployWeb(String site) async {
-  await interactive("firebase", [
-    "deploy",
-    "--only",
-    "hosting:$site",
-  ]);
-}
-
-Future<void> buildProdServer(OccultConfiguration config) async {
-  await interactive(
-      "cp",
-      ["-r", "../${config.name}_models", "${config.name}_models"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive("flutter", ["pub", "get"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive("flutter", ["pub", "get"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
-  await interactive("rm", ["-rf", ".dart_tool"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
-  await interactive(
-      "docker",
-      [
-        "build",
-        "--platform",
-        "linux/amd64",
-        "-t",
-        "us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest",
-        "."
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive(
-      "rm",
-      [
-        "-rf",
-        "${config.name}_models",
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-
-  await interactive("gcloud", ["auth", "configure-docker", "us-central1"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive(
-      "docker",
-      [
-        "push",
-        "--platform",
-        "linux/amd64",
-        "us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest"
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-}
-
-Future<void> deployProdServer(OccultConfiguration config) async {
-  await interactive(
-      "cp",
-      ["-r", "../${config.name}_models", "${config.name}_models"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive("flutter", ["pub", "get"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive("flutter", ["pub", "get"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
-  await interactive("rm", ["-rf", ".dart_tool"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
-  await interactive(
-      "docker",
-      [
-        "build",
-        "--platform",
-        "linux/amd64",
-        "-t",
-        "us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest",
-        "."
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive(
-      "rm",
-      [
-        "-rf",
-        "${config.name}_models",
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-
-  await interactive("gcloud", ["auth", "configure-docker", "us-central1"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive(
-      "docker",
-      [
-        "push",
-        "--platform",
-        "linux/amd64",
-        "us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest"
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive(
-      "gcloud",
-      [
-        "beta",
-        "run",
-        "deploy",
-        "${config.name}-server",
-        "--project=${config.firebaseProjectId}",
-        "--image=us-central1-docker.pkg.dev/${config.firebaseProjectId}/cloud-run-source-deploy/${config.name}-server:latest",
-        "--min-instances=0",
-        "--memory",
-        "2Gi",
-        "--cpu",
-        "2",
-        "--concurrency",
-        "4",
-        "--cpu-boost"
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-}
-
-Future<void> runDevServer(OccultConfiguration config) async {
-  await interactive(
-      "cp",
-      ["-r", "../${config.name}_models", "${config.name}_models"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive("flutter", ["pub", "get"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive("flutter", ["pub", "get"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
-  await interactive("rm", ["-rf", ".dart_tool"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
-  await interactive(
-      "docker",
-      [
-        "build",
-        "--platform",
-        "linux/amd64",
-        "-t",
-        "${config.name}-dev",
-        "-f",
-        "Dockerfile-dev",
-        "."
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive(
-      "rm",
-      [
-        "-rf",
-        "${config.name}_models",
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive(
-      "docker",
-      [
-        "run",
-        "--platform",
-        "linux/amd64",
-        "-it",
-        "--init",
-        "--rm",
-        "-p",
-        "8080:8080",
-        "${config.name}-dev",
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-}
-
-Future<void> buildDevServer(OccultConfiguration config) async {
-  await interactive(
-      "cp",
-      ["-r", "../${config.name}_models", "${config.name}_models"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive("flutter", ["pub", "get"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive("flutter", ["pub", "get"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
-  await interactive("rm", ["-rf", ".dart_tool"],
-      "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
-  await interactive(
-      "docker",
-      [
-        "build",
-        "--platform",
-        "linux/amd64",
-        "-t",
-        "${config.name}-dev",
-        "-f",
-        "Dockerfile-dev",
-        "."
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
-  await interactive(
-      "rm",
-      [
-        "-rf",
-        "${config.name}_models",
-      ],
-      "${config.path}${Platform.pathSeparator}${config.name}_server");
 }
 
 Future<void> buildModels(OccultConfiguration config) async {
@@ -458,182 +105,6 @@ Future<OccultConfiguration?> getOccultConfiguration(String path) async {
   return null;
 }
 
-bool _debugFailures = false;
-
-Future<bool> harassInstallCLI(
-    {required String tool,
-    required String check,
-    required String good,
-    required String bad}) async {
-  bool gotIt = false;
-  final checker = Spinner(
-    icon: '✔'.padRight(2).green(),
-    leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? gotIt
-            ? good
-            : bad
-        : check,
-  ).interact();
-  gotIt = _debugFailures ? false : await isCLIInstalled(tool);
-  checker.done();
-  return gotIt;
-}
-
-//    confirmMain(
-//         "4.6. ENSURE gcloud is authenticated & signed in with an account that can access $firebaseProjectID! (gcloud auth login)");
-//     confirmMain(
-//         "4.7. ENSURE firebase is authenticated & signed in with an account that can access $firebaseProjectID! (firebase login)");
-
-Future<void> copyFile(String i, String o, {bool strict = true}) async {
-  final loader = Spinner(
-    icon: '✔'.padRight(2).green(),
-    leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Installed /${o}'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Installing /${o}'.spin(0xd303fc, 0xfc03c6).chatColor,
-  ).interact();
-
-  File fi = File(i);
-  File fo = File(o);
-
-  if (!await fi.exists()) {
-    if (strict) {
-      throw Exception("File $i does not exist");
-    }
-
-    loader.done();
-    return;
-  }
-
-  if (!await fo.parent.exists()) {
-    await fo.parent.create(recursive: true);
-  }
-
-  if (await fo.exists()) {
-    await fo.delete();
-  }
-
-  if (await fi.exists()) {
-    await fi.copy(o);
-  }
-
-  loader.done();
-}
-
-Future<void> deleteFolder(String name) async {
-  final loader = Spinner(
-    icon: '✔'.padRight(2).green(),
-    leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Deleting /${name}'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Deleted /${name}'.spin(0xd303fc, 0xfc03c6).chatColor,
-  ).interact();
-
-  Directory dir = Directory(name);
-
-  if (await dir.exists()) {
-    await dir.delete(recursive: true);
-  }
-
-  loader.done();
-}
-
-Future<void> patchAppPubspec(String name) async {
-  final loader = Spinner(
-    icon: '✔'.padRight(2).green(),
-    leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Patched /$name/pubspec.yaml'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Patching /$name/pubspec.yaml'.spin(0xd303fc, 0xfc03c6).chatColor,
-  ).interact();
-  String contents = await HttpClient()
-      .getUrl(Uri.parse(
-          "https://raw.githubusercontent.com/ArcaneArts/arcane/refs/heads/main/example/pubspec.yaml"))
-      .then((request) => request.close())
-      .then((response) => response.transform(Utf8Decoder()).join());
-
-  var doc = loadYaml(contents);
-  YamlEditor app = YamlEditor(
-      File("$name${Platform.pathSeparator}pubspec.yaml").readAsStringSync());
-  app.update(["flutter"], doc["flutter"]);
-  app.update(["flutter_native_splash"],
-      {"color": "#230055", "image": "assets/icon/splash.png"});
-  app.update([
-    "flutter_launcher_icons"
-  ], {
-    "ios": true,
-    "image_path": "assets/icon/icon.png",
-    "android": "launcher_icon",
-    "web": {"generate": true},
-    "windows": {"generate": true},
-    "macos": {"generate": true}
-  });
-  app.update([
-    "scripts"
-  ], {
-    "update_occult": "dart pub global activate occult",
-    "build_models": "occult build --models",
-    "build_launcher_icons": "occult build --launcher-icons",
-    "build_splash_screen": "occult build --splash-screen",
-    "run_server": "occult run --server",
-    "deploy_web_release": "occult deploy --web-release",
-    "deploy_web_beta": "occult deploy --web",
-    "deploy_server": "occult deploy --server-release"
-  });
-  File("$name${Platform.pathSeparator}pubspec.yaml")
-      .writeAsStringSync(app.toString().replaceAll("\\/", "/"));
-
-  loader.done();
-}
-
-Future<void> runFirebaseLogin() async {
-  instruct("Signing into Firebase CLI");
-  final process = await Process.start(
-    'firebase',
-    ['login'],
-    mode: ProcessStartMode.inheritStdio,
-  );
-
-  int exitCode = await process.exitCode;
-
-  if (exitCode != 0) {
-    throw Exception("Failed to run firebase login");
-  }
-}
-
-Future<void> runGcloudLogin() async {
-  instruct("Signing into gcloud CLI");
-  final process = await Process.start(
-    'gcloud',
-    ['auth', "login"],
-    mode: ProcessStartMode.inheritStdio,
-  );
-
-  int exitCode = await process.exitCode;
-
-  if (exitCode != 0) {
-    throw Exception("Failed to run gcloud auth login");
-  }
-}
-
-Future<void> runBuildRunner(String project) async {
-  instruct("Setting Up /$project");
-  final process = await Process.start(
-    'dart',
-    ['run', "build_runner", "build", "--delete-conflicting-outputs"],
-    mode: ProcessStartMode.inheritStdio,
-    workingDirectory:
-        "${Directory.current.absolute.path}${Platform.pathSeparator}$project",
-  );
-
-  int exitCode = await process.exitCode;
-
-  if (exitCode != 0) {
-    throw Exception("Failed to run build_runner build on $project");
-  }
-}
-
 Future<void> runFlutterFireInteractive(String project, String app) async {
   final process = await Process.start(
     'flutterfire',
@@ -664,9 +135,8 @@ Future<void> downloadTemplates(
   final loader = Spinner(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Acquired Arcane Templates'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Acquiring Arcane Templates'.spin(0xd303fc, 0xfc03c6).chatColor,
+    rightPrompt: (done) =>
+        done ? 'Acquired Arcane Templates' : 'Acquiring Arcane Templates',
   ).interact();
   File occult = File("occult.zip");
   instruct(
@@ -762,11 +232,7 @@ Future<void> applyTemplate(String project, String baseClassName) async {
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
         ? 'Applied Arcane Template for $baseClassName in /$project'
-            .spin(0x7dff7f, 0x03fc6b)
-            .chatColor
-        : 'Applying arcane Template for $baseClassName in /$project'
-            .spin(0xd303fc, 0xfc03c6)
-            .chatColor,
+        : 'Applying arcane Template for $baseClassName in /$project',
   ).interact();
 
   Directory dir = Directory(".occult/Occult-main/template/${project}"
@@ -802,11 +268,7 @@ Future<void> installLibMagick(String project) async {
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
         ? 'Installed Image Magick FFI in /$project'
-            .spin(0x7dff7f, 0x03fc6b)
-            .chatColor
-        : 'Installing Image Magick FFI in /$project'
-            .spin(0xd303fc, 0xfc03c6)
-            .chatColor,
+        : 'Installing Image Magick FFI in /$project',
   ).interact();
   await Directory("$project${Platform.pathSeparator}ffi")
       .create(recursive: true);
@@ -824,9 +286,8 @@ Future<void> createStorageRules() async {
   final creatingLoader = Spinner(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Created storage.rules config'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Creating storage.rules config'.spin(0xd303fc, 0xfc03c6).chatColor,
+    rightPrompt: (done) =>
+        done ? 'Created storage.rules config' : 'Creating storage.rules config',
   ).interact();
   await File(
           "config${Platform.pathSeparator}firebase${Platform.pathSeparator}storage.rules")
@@ -853,9 +314,8 @@ Future<void> createOccultConfig(
   final creatingLoader = Spinner(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Created occult config'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Creating occult config'.spin(0xd303fc, 0xfc03c6).chatColor,
+    rightPrompt: (done) =>
+        done ? 'Created occult config' : 'Creating occult config',
   ).interact();
   await File("config${Platform.pathSeparator}occult.json")
       .writeAsString(JsonEncoder.withIndent("  ").convert({
@@ -872,8 +332,8 @@ Future<void> createFirestoreRules() async {
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
-        ? 'Created firestore.rules config'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Creating firestore.rules config'.spin(0xd303fc, 0xfc03c6).chatColor,
+        ? 'Created firestore.rules config'
+        : 'Creating firestore.rules config',
   ).interact();
   await File(
           "config${Platform.pathSeparator}firebase${Platform.pathSeparator}firestore.rules")
@@ -923,11 +383,7 @@ Future<void> createFirebaseIndexesJson() async {
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
         ? 'Created firebase.indexes.json config'
-            .spin(0x7dff7f, 0x03fc6b)
-            .chatColor
-        : 'Creating firebase.indexes.json config'
-            .spin(0xd303fc, 0xfc03c6)
-            .chatColor,
+        : 'Creating firebase.indexes.json config',
   ).interact();
   await File(
           "config${Platform.pathSeparator}firebase${Platform.pathSeparator}firebase.indexes.json")
@@ -940,9 +396,8 @@ Future<void> createFirebaseJson(String project, String app) async {
   final creatingLoader = Spinner(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Created firebase.json config'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Creating firebase.json config'.spin(0xd303fc, 0xfc03c6).chatColor,
+    rightPrompt: (done) =>
+        done ? 'Created firebase.json config' : 'Creating firebase.json config',
   ).interact();
   await File("firebase.json")
       .writeAsString(JsonEncoder.withIndent("  ").convert({
@@ -978,9 +433,8 @@ Future<void> createFirebaseRC(String projectname) async {
   final creatingLoader = Spinner(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Created .firebaserc config'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Creating .firebaserc config'.spin(0xd303fc, 0xfc03c6).chatColor,
+    rightPrompt: (done) =>
+        done ? 'Created .firebaserc config' : 'Creating .firebaserc config',
   ).interact();
   await File(".firebaserc").writeAsString(JsonEncoder.withIndent("  ").convert({
     "projects": {"default": projectname}
@@ -993,8 +447,8 @@ Future<void> enableGcloudArtifactRegistry(String project) async {
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
-        ? 'Enabled GCP Artifact Registry'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Enabling GCP Artifact Registry'.spin(0xd303fc, 0xfc03c6).chatColor,
+        ? 'Enabled GCP Artifact Registry'
+        : 'Enabling GCP Artifact Registry',
   ).interact();
   //.// gcloud services enable run.googleapis.com artifactregistry.googleapis.com --project=YOUR_PROJECT_ID
   ProcessResult p = await Process.run("gcloud", [
@@ -1019,9 +473,8 @@ Future<void> enableGcloudRun(String project) async {
   final runner = Spinner(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Enabled GCP Cloud Run'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Enabling GCP Cloud Run'.spin(0xd303fc, 0xfc03c6).chatColor,
+    rightPrompt: (done) =>
+        done ? 'Enabled GCP Cloud Run' : 'Enabling GCP Cloud Run',
   ).interact();
   //.// gcloud services enable run.googleapis.com artifactregistry.googleapis.com --project=YOUR_PROJECT_ID
   ProcessResult p = await Process.run("gcloud",
@@ -1042,9 +495,8 @@ Future<void> addPathDependency(String name, String dep) async {
   final setupDependencies = Spinner(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Linked /$dep to /$name'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Linking /$dep to /$name'.spin(0xd303fc, 0xfc03c6).chatColor,
+    rightPrompt: (done) =>
+        done ? 'Linked /$dep to /$name' : 'Linking /$dep to /$name',
   ).interact();
   ProcessResult p = await Process.run(
       "flutter", ["pub", "add", dep, "--path", "../$dep"],
@@ -1067,8 +519,8 @@ Future<void> createFlutterProject(String name, String org) async {
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
-        ? 'Created /$name Flutter project'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Creating /$name Flutter project'.spin(0xd303fc, 0xfc03c6).chatColor,
+        ? 'Created /$name Flutter project'
+        : 'Creating /$name Flutter project',
   ).interact();
   ProcessResult p = await Process.run("flutter", [
     "create",
@@ -1106,8 +558,8 @@ Future<void> createServerProject(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
-        ? 'Created /$name Flutter project'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Creating /$name Flutter project'.spin(0xd303fc, 0xfc03c6).chatColor,
+        ? 'Created /$name Flutter project'
+        : 'Creating /$name Flutter project',
   ).interact();
   ProcessResult p = await Process.run("flutter", [
     "create",
@@ -1141,9 +593,8 @@ Future<void> createModelsPackage(String name) async {
   final creatingLoader = Spinner(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
-    rightPrompt: (done) => done
-        ? 'Created /$name package'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Creating /$name package'.spin(0xd303fc, 0xfc03c6).chatColor,
+    rightPrompt: (done) =>
+        done ? 'Created /$name package' : 'Creating /$name package',
   ).interact();
   ProcessResult p = await Process.run("flutter", [
     "create",
@@ -1174,8 +625,8 @@ Future<void> setupAppDependencies(String name) async {
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
-        ? 'Installed Dependencies for /$name'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Installing Dependencies /$name'.spin(0xd303fc, 0xfc03c6).chatColor,
+        ? 'Installed Dependencies for /$name'
+        : 'Installing Dependencies /$name',
   ).interact();
   ProcessResult p = await Process.run(
       "flutter",
@@ -1242,8 +693,8 @@ Future<void> setupServerDependencies(String name, String rootName) async {
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
-        ? 'Installed Dependencies for /$name'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Installing Dependencies /$name'.spin(0xd303fc, 0xfc03c6).chatColor,
+        ? 'Installed Dependencies for /$name'
+        : 'Installing Dependencies /$name',
   ).interact();
   ProcessResult p = await Process.run(
       "flutter",
@@ -1289,10 +740,8 @@ Future<void> setupModelsDependencies(String name) async {
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
     rightPrompt: (done) => done
-        ? 'Installed Dependencies for /$name'.spin(0x7dff7f, 0x03fc6b).chatColor
-        : 'Installing Dependencies for /$name'
-            .spin(0xd303fc, 0xfc03c6)
-            .chatColor,
+        ? 'Installed Dependencies for /$name'
+        : 'Installing Dependencies for /$name',
   ).interact();
   ProcessResult p = await Process.run(
       "flutter",

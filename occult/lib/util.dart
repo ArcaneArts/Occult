@@ -4,24 +4,24 @@ import 'package:interact/interact.dart';
 import 'package:tint/tint.dart';
 
 Theme theme = Theme(
-  inputPrefix: '?'.padRight(2).yellow(),
+  inputPrefix: '?'.padRight(2).brightCyan(),
   inputSuffix: '›'.padLeft(2).grey(),
-  successPrefix: '✔'.padRight(2).green(),
+  successPrefix: '✔'.padRight(2).brightGreen(),
   successSuffix: '·'.padLeft(2).grey(),
-  errorPrefix: '✘'.padRight(2).red(),
+  errorPrefix: '✘'.padRight(2).brightRed(),
   hiddenPrefix: '****',
   messageStyle: (x) => x.bold(),
   errorStyle: (x) => x.red(),
   hintStyle: (x) => '($x)'.grey(),
-  valueStyle: (x) => x.green(),
+  valueStyle: (x) => x.white(),
   defaultStyle: (x) => x.cyan(),
   activeItemPrefix: '❯'.green(),
   inactiveItemPrefix: ' ',
   activeItemStyle: (x) => x.cyan(),
   inactiveItemStyle: (x) => x,
-  checkedItemPrefix: '✔'.green(),
+  checkedItemPrefix: '✔'.brightGreen(),
   uncheckedItemPrefix: ' ',
-  pickedItemPrefix: '❯'.green(),
+  pickedItemPrefix: '❯'.brightGreen(),
   unpickedItemPrefix: ' ',
   showActiveCursor: false,
   progressPrefix: '',
@@ -35,26 +35,6 @@ Theme theme = Theme(
   spinners: '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'.split(''),
   spinningInterval: 80,
 );
-
-Future<void> ensureCLIInstalled(String tool) async {
-  if (!await isCLIInstalled(tool)) {
-    print(
-        'The CLI tool $tool is not installed. Please install it and try again.');
-    exit(1);
-  }
-
-  print('CLI tool $tool is installed.');
-}
-
-Future<bool> isCLIInstalled(String tool) async {
-  try {
-    final command = Platform.isWindows ? 'where' : 'which';
-    final result = await Process.run(command, [tool]);
-    return result.exitCode == 0;
-  } catch (e) {
-    return false;
-  }
-}
 
 Future<void> runProcess(String command, List<String> args,
     [String? runIn]) async {

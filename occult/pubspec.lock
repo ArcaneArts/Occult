@@ -134,14 +134,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
-  chat_color:
-    dependency: "direct main"
-    description:
-      name: chat_color
-      sha256: "80d03b600d9aaecb1073a86f3f1df91fbd7a8caf5507b2d3a44414f6fc2ed73c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   checked_yaml:
     dependency: transitive
     description:
@@ -190,14 +182,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
-  color:
-    dependency: transitive
-    description:
-      name: color
-      sha256: ddcdf1b3badd7008233f5acffaf20ca9f5dc2cd0172b75f68f24526a5f5725cb
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   convert:
     dependency: transitive
     description:
@@ -407,7 +391,7 @@ packages:
     source: hosted
     version: "2.1.1"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       sha256: "75cca69d1490965be98c73ceaea117e8a04dd21217b37b292c9ddbec0d955bc5"
