@@ -3,14 +3,14 @@ import 'package:arcane/arcane.dart';
 import 'package:arcane_auth/arcane_auth.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
-class CareMapApplication extends StatefulWidget {
-  const CareMapApplication({super.key});
+class AppNameApplication extends StatefulWidget {
+  const AppNameApplication({super.key});
 
   @override
-  State<CareMapApplication> createState() => _CareMapApplicationState();
+  State<AppNameApplication> createState() => _AppNameApplicationState();
 }
 
-class _CareMapApplicationState extends State<CareMapApplication> {
+class _AppNameApplicationState extends State<AppNameApplication> {
   @override
   void initState() {
     FlutterNativeSplash.remove();

@@ -13,7 +13,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:serviced/serviced.dart';
 
-void main() => _init().then((_) => runApp(CareMapApplication()));
+void main() => _init().then((_) => runApp(AppNameApplication()));
 
 late Box hotBox;
 late LazyBox coldBox;
