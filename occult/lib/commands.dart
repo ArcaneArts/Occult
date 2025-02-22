@@ -5,7 +5,9 @@ import 'package:occult/all.dart';
 import 'package:occult/routine/create.dart';
 import 'package:occult/task/build_app.dart';
 import 'package:occult/task/build_dev_server.dart';
+import 'package:occult/task/deploy_firestore.dart';
 import 'package:occult/task/deploy_prod_server.dart';
+import 'package:occult/task/deploy_storage.dart';
 import 'package:occult/task/deploy_web.dart';
 import 'package:occult/task/run_build_runner.dart';
 import 'package:occult/task/run_dev_server.dart';
@@ -57,6 +59,12 @@ class OccultRunner extends _$OccultRunner {
 
     /// Deploys the release web app to firebase hosting
     bool webRelease = false,
+
+    /// Deploys storage rules for firebase
+    bool storage = false,
+
+    /// Deploys firestore rules for firebase
+    bool firestore = false,
   }) async {
     OccultConfiguration? config = await findOccultConfiguration();
     if (config == null) {
@@ -79,6 +87,18 @@ class OccultRunner extends _$OccultRunner {
 
     if (web) {
       TaskEngine.add(TDeployWeb(config, beta: true));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (storage) {
+      TaskEngine.add(TDeployStorage(config));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (firestore) {
+      TaskEngine.add(TDeployFirestore(config));
       await TaskEngine.waitFor();
       ran = true;
     }

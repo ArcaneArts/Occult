@@ -4,6 +4,8 @@ import 'package:interact/interact.dart';
 import 'package:occult/all.dart';
 import 'package:occult/task/apply_templates.dart';
 import 'package:occult/task/create_projects.dart';
+import 'package:occult/task/deploy_firestore.dart';
+import 'package:occult/task/deploy_storage.dart';
 import 'package:occult/task/deploy_web.dart';
 import 'package:occult/task/enable_googleapis.dart';
 import 'package:occult/task/firebase_login.dart';
@@ -238,6 +240,8 @@ class RoutineSetup extends Routine {
     s(TaskDeleteFolder("${name}_models${Platform.pathSeparator}test"));
     s(TaskDeleteFolder("${name}${Platform.pathSeparator}test"));
     s(TaskDeleteFolder("${name}_server${Platform.pathSeparator}test"));
+    s(TDeployFirestore(config));
+    s(TDeployStorage(config));
     await s(TRunSplashGen(config));
     await s(TRunLaunchIconsGen(config));
     await s(TDeployWeb(config));
