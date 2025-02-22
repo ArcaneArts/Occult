@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cli_annotations/cli_annotations.dart';
 import 'package:occult/all.dart';
 import 'package:occult/routine/create.dart';
+import 'package:occult/task/build_app.dart';
 import 'package:occult/task/build_dev_server.dart';
 import 'package:occult/task/deploy_prod_server.dart';
 import 'package:occult/task/deploy_web.dart';
@@ -71,7 +72,7 @@ class OccultRunner extends _$OccultRunner {
     }
 
     if (webRelease) {
-      TaskEngine.add(TDeployWeb(config, beta: true));
+      TaskEngine.add(TDeployWeb(config, beta: false));
       await TaskEngine.waitFor();
       ran = true;
     }
@@ -162,6 +163,70 @@ class OccultRunner extends _$OccultRunner {
 
     if (launcherIcons) {
       TaskEngine.add(TRunLaunchIconsGen(config));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (web) {
+      TaskEngine.add(TBuildApp(config, "web"));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (apk) {
+      TaskEngine.add(TBuildApp(config, "apk"));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (ios) {
+      if (!Platform.isMacOS) {
+        throw Exception("iOS builds can only be run on macOS");
+      }
+
+      TaskEngine.add(TBuildApp(config, "ios"));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (macos) {
+      if (!Platform.isMacOS) {
+        throw Exception("macOS builds can only be run on macOS");
+      }
+
+      TaskEngine.add(TBuildApp(config, "macos"));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (windows) {
+      if (!Platform.isWindows) {
+        throw Exception("Windows builds can only be run on Windows");
+      }
+      TaskEngine.add(TBuildApp(config, "windows"));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (linux) {
+      if (!Platform.isLinux) {
+        throw Exception("Linux builds can only be run on Linux");
+      }
+
+      TaskEngine.add(TBuildApp(config, "linux"));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (appbundle) {
+      TaskEngine.add(TBuildApp(config, "appbundle"));
+      await TaskEngine.waitFor();
+      ran = true;
+    }
+
+    if (oss) {
+// TODO:
+      throw Exception("OSS License Generation is not yet implemented");
       await TaskEngine.waitFor();
       ran = true;
     }

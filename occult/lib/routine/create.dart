@@ -12,6 +12,9 @@ import 'package:occult/task/gcloud_login.dart';
 import 'package:occult/task/gen_firebase_configs.dart';
 import 'package:occult/task/run_launcher_icons_gen.dart';
 import 'package:occult/task/run_splash_gen.dart';
+import 'package:occult/task/set_android_min_sdk_ver.dart';
+import 'package:occult/task/set_ios_platform_version.dart';
+import 'package:occult/task/set_macos_platform_version.dart';
 import 'package:occult/util/task_engine.dart';
 import 'package:occult/util/tasks.dart';
 
@@ -26,7 +29,8 @@ class RoutineSetup extends Routine {
       "npm",
       "flutterfire",
       "gcloud",
-      "docker"
+      "docker",
+      if (Platform.isMacOS) ...["brew", "pod"]
     ]));
 
     instruct("The current directory is ${Directory.current.path}");
@@ -226,6 +230,9 @@ class RoutineSetup extends Routine {
         firebaseprojectid: project));
     s(TaskCopyFile(
         "config/keys/$jsonfilename", "${name}_server/$jsonfilename"));
+    s(TSetAndroidMinSDKVersion(config, "23"));
+    s(TSetIMacOSPlatformVersion(config, "10.15"));
+    s(TSetIOSPlatformVersion(config, "13.0"));
     await TaskEngine.waitFor();
     s(TaskDeleteFolder(".occult"));
     s(TaskDeleteFolder("${name}_models${Platform.pathSeparator}test"));
@@ -234,5 +241,21 @@ class RoutineSetup extends Routine {
     await s(TRunSplashGen(config));
     await s(TRunLaunchIconsGen(config));
     await s(TDeployWeb(config));
+    bool built = false;
+    while (!built) {
+      instruct(
+          "8. Head to https://console.firebase.google.com/project/${firebaseProjectID}/hosting/sites/occult-test");
+      instruct(
+          "8.1. Scroll to the bottom & click Add Another Site (bottom right)");
+      instruct("ID: ${firebaseProjectID}-beta");
+      confirmMain("CONFIRM you have added the beta site");
+      try {
+        await s(TDeployWeb(config, beta: true));
+      } catch (e) {
+        print("ACTUALLY COMPLETE STEP 8, then TRY AGAIN!");
+        continue;
+      }
+      built = true;
+    }
   }
 }

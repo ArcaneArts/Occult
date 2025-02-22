@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:interact/interact.dart';
@@ -65,4 +66,33 @@ Future<void> interactive(String command, List<String> args,
   if (exitCode != 0) {
     throw Exception("Failed to process $command ${args.join(" ")} in $runIn");
   }
+}
+
+Future<(int, String, String)> interactiveSpy(String command, List<String> args,
+    [String? runIn]) async {
+  final process = await Process.start(
+    command,
+    args,
+    mode: ProcessStartMode.normal,
+    workingDirectory: runIn,
+  );
+
+  final stdoutBuffer = StringBuffer();
+  final stderrBuffer = StringBuffer();
+
+  process.stdout.transform(utf8.decoder).listen((data) {
+    stdout.write(data);
+    stdoutBuffer.write(data);
+  });
+
+  process.stderr.transform(utf8.decoder).listen((data) {
+    stderr.write(data);
+    stderrBuffer.write(data);
+  });
+
+  return (
+    await process.exitCode,
+    stdoutBuffer.toString(),
+    stderrBuffer.toString()
+  );
 }
