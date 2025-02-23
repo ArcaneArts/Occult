@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:occult/all.dart';
 import 'package:occult/task/build_prod_server.dart';
 import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
 
 class TDeployProdServer extends OTaskExclusiveJob {
   final OccultConfiguration config;
@@ -13,8 +12,9 @@ class TDeployProdServer extends OTaskExclusiveJob {
   @override
   Future<void> run() async {
     await TBuildProdServer(config).run();
+    String gcloudCommand = Platform.isWindows ? "gcloud.cmd" : "gcloud";
     await interactive(
-        "gcloud",
+        gcloudCommand,
         [
           "beta",
           "run",

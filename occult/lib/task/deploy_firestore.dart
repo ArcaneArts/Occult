@@ -1,6 +1,7 @@
 import 'package:occult/all.dart';
 import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
 
 class TDeployFirestore extends OTaskExclusiveJob {
   final OccultConfiguration config;
@@ -9,7 +10,8 @@ class TDeployFirestore extends OTaskExclusiveJob {
 
   @override
   Future<void> run() async {
-    await interactive("firebase", [
+    final firebaseCommand = Platform.isWindows ? "firebase.cmd" : "firebase";
+    await interactive(firebaseCommand, [
       "deploy",
       "--only",
       "firestore",

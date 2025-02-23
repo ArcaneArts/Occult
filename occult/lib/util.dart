@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:interact/interact.dart';
 import 'package:tint/tint.dart';
+import 'package:universal_io/io.dart';
 
 Theme theme = Theme(
   inputPrefix: '?'.padRight(2).brightCyan(),

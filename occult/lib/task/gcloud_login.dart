@@ -1,5 +1,9 @@
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
+
+// Determine the correct command based on the platform.
+final String gcloudCommand = Platform.isWindows ? 'gcloud.cmd' : 'gcloud';
 
 class TGCloudLogin extends TRunInteractive {
-  TGCloudLogin() : super("gcloud", const ["auth", "login"]);
+  TGCloudLogin() : super(gcloudCommand, const ["auth", "login"]);
 }

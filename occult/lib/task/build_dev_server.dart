@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:occult/all.dart';
 import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
 
 class TBuildDevServer extends OTaskExclusiveJob {
   final OccultConfiguration config;
@@ -15,12 +14,13 @@ class TBuildDevServer extends OTaskExclusiveJob {
         "cp",
         ["-r", "../${config.name}_models", "${config.name}_models"],
         "${config.path}${Platform.pathSeparator}${config.name}_server");
-    await interactive("flutter", ["pub", "get"],
+    final flutterCommand = Platform.isWindows ? "flutter.bat" : "flutter";
+    await interactive(flutterCommand, ["pub", "get"],
         "${config.path}${Platform.pathSeparator}${config.name}_server");
-    await interactive("flutter", ["pub", "get"],
-        "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+    await interactive(flutterCommand, ["pub", "get"],
+        "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}${config.name}_models");
     await interactive("rm", ["-rf", ".dart_tool"],
-        "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}/${config.name}_models");
+        "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}${config.name}_models");
     await interactive(
         "docker",
         [
@@ -34,12 +34,7 @@ class TBuildDevServer extends OTaskExclusiveJob {
           "."
         ],
         "${config.path}${Platform.pathSeparator}${config.name}_server");
-    await interactive(
-        "rm",
-        [
-          "-rf",
-          "${config.name}_models",
-        ],
+    await interactive("rm", ["-rf", "${config.name}_models"],
         "${config.path}${Platform.pathSeparator}${config.name}_server");
   }
 }

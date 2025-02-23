@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:interact/interact.dart';
 import 'package:occult/all.dart';
 import 'package:occult/task/apply_templates.dart';
@@ -20,18 +18,27 @@ import 'package:occult/task/set_macos_platform_version.dart';
 import 'package:occult/util/task_engine.dart';
 import 'package:occult/util/tasks.dart';
 import 'package:path/path.dart' as p;
+import 'package:universal_io/io.dart';
+
+String getCliCommand(String command) {
+  if (Platform.isWindows) {
+    if (command == "flutter") return "flutter.bat";
+    if (command == "firebase") return "firebase.cmd";
+    if (command == "gcloud") return "gcloud.cmd";
+  }
+  return command;
+}
 
 class RoutineSetup extends Routine {
   @override
   Future<void> onRun() async {
-    // Check for CLI tools
     await s(TCheckCLITools([
-      "flutter",
+      getCliCommand("flutter"),
       "dart",
-      "firebase",
+      getCliCommand("firebase"),
       "npm",
       "flutterfire",
-      "gcloud",
+      getCliCommand("gcloud"),
       "docker",
       if (Platform.isMacOS) ...["brew", "pod"]
     ]));
@@ -230,8 +237,10 @@ class RoutineSetup extends Routine {
     s(TaskCopyFile(
         "config/keys/$jsonfilename", "${name}_server/$jsonfilename"));
     s(TSetAndroidMinSDKVersion(config, "23"));
-    s(TSetIMacOSPlatformVersion(config, "10.15"));
-    s(TSetIOSPlatformVersion(config, "13.0"));
+    if (Platform.isMacOS) {
+      s(TSetIMacOSPlatformVersion(config, "10.15"));
+      s(TSetIOSPlatformVersion(config, "13.0"));
+    }
     await TaskEngine.waitFor();
     s(TaskDeleteFolder(".occult"));
     s(TaskDeleteFolder("${name}_models${Platform.pathSeparator}test"));
