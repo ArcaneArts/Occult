@@ -19,6 +19,7 @@ import 'package:occult/task/set_ios_platform_version.dart';
 import 'package:occult/task/set_macos_platform_version.dart';
 import 'package:occult/util/task_engine.dart';
 import 'package:occult/util/tasks.dart';
+import 'package:path/path.dart' as p;
 
 class RoutineSetup extends Routine {
   @override
@@ -76,7 +77,7 @@ class RoutineSetup extends Routine {
     confirmMain(
         "4.3. Select ${firebaseProjectID}-server@${firebaseProjectID}.iam.gserviceaccount.com in the list");
     confirmMain(
-        "4.4. Under the KEYS tab click ADD KEY > Create new key > JSON");
+        "4.4. Under the KEYS tab click  ADD KEY > Create new key > JSON");
 
     String? sak;
     while (sak == null) {
@@ -87,16 +88,12 @@ class RoutineSetup extends Routine {
       if (!await keysDir.exists()) {
         await keysDir.create(recursive: true);
       }
-
       sak = (await keysDir
               .list(recursive: false, followLinks: false)
               .where((i) =>
                   i is File &&
                   i.path.endsWith(".json") &&
-                  i.path
-                      .split(Platform.pathSeparator)
-                      .last
-                      .startsWith("${firebaseProjectID}-"))
+                  p.basename(i.path).startsWith("${firebaseProjectID}-"))
               .toList())
           .whereType<File>()
           .firstOrNull

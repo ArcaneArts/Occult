@@ -5,6 +5,7 @@ import 'package:occult/util/tasks.dart';
 class TFlutterFireInit extends OTaskExclusiveJob {
   final String app;
   final String fbProject;
+
   TFlutterFireInit(this.app, this.fbProject)
       : super("Flutterfire Init $app $fbProject");
 

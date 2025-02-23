@@ -3,6 +3,7 @@ import 'package:tint/tint.dart';
 
 class TaskEngine {
   static int _id = 0;
+
   static int get nextId => _id++;
   static List<OTask> runningTasks = [];
 

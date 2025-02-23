@@ -2,3 +2,5 @@
 occult/test/
 
 .DS_Store
+
+.idea/
