@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:interact/interact.dart';
 import 'package:occult/util.dart';
 import 'package:tint/tint.dart';
+import 'package:universal_io/io.dart';
 
 void instruct(String message) {
   print(message.yellow());
@@ -450,13 +450,14 @@ Future<void> enableGcloudArtifactRegistry(String project) async {
         ? 'Enabled GCP Artifact Registry'
         : 'Enabling GCP Artifact Registry',
   ).interact();
-  //.// gcloud services enable run.googleapis.com artifactregistry.googleapis.com --project=YOUR_PROJECT_ID
-  ProcessResult p = await Process.run("gcloud", [
+
+  ProcessResult p = await Process.run(gcloudPlatformCommand, [
     "services",
     "enable",
     "artifactregistry.googleapis.com",
     "--project=$project"
   ]);
+
   if (p.exitCode != 0) {
     print("FAILED TO RUN PROCESS! ${p.exitCode}");
     print(p.stdout);
@@ -476,16 +477,17 @@ Future<void> enableGcloudRun(String project) async {
     rightPrompt: (done) =>
         done ? 'Enabled GCP Cloud Run' : 'Enabling GCP Cloud Run',
   ).interact();
-  //.// gcloud services enable run.googleapis.com artifactregistry.googleapis.com --project=YOUR_PROJECT_ID
-  ProcessResult p = await Process.run("gcloud",
+
+  ProcessResult p = await Process.run(gcloudPlatformCommand,
       ["services", "enable", "run.googleapis.com", "--project=$project"]);
+
   if (p.exitCode != 0) {
     print("FAILED TO RUN PROCESS! ${p.exitCode}");
     print(p.stdout);
     print("---");
     print(p.stderr);
     print("---");
-    throw Exception("Failed to gcloud artifact registry");
+    throw Exception("Failed to enable GCP Cloud Run");
   }
 
   runner.done();
@@ -522,7 +524,8 @@ Future<void> createFlutterProject(String name, String org) async {
         ? 'Created /$name Flutter project'
         : 'Creating /$name Flutter project',
   ).interact();
-  ProcessResult p = await Process.run("flutter", [
+
+  ProcessResult p = await Process.run(flutterPlatformCommand, [
     "create",
     "--platforms=android,ios,web,linux,windows,macos",
     "-a",
@@ -540,6 +543,7 @@ Future<void> createFlutterProject(String name, String org) async {
     "-v",
     name
   ]);
+
   if (p.exitCode != 0) {
     print("FAILED TO RUN PROCESS! ${p.exitCode}");
     print(p.stdout);
@@ -548,6 +552,7 @@ Future<void> createFlutterProject(String name, String org) async {
     print("---");
     throw Exception("Failed to create Flutter project");
   }
+
   creatingLoader.done();
   await setupAppDependencies(name);
 }
@@ -561,7 +566,8 @@ Future<void> createServerProject(
         ? 'Created /$name Flutter project'
         : 'Creating /$name Flutter project',
   ).interact();
-  ProcessResult p = await Process.run("flutter", [
+
+  ProcessResult p = await Process.run(flutterPlatformCommand, [
     "create",
     "--platforms=linux",
     "-t",
@@ -577,6 +583,7 @@ Future<void> createServerProject(
     "-v",
     name
   ]);
+
   if (p.exitCode != 0) {
     print("FAILED TO RUN PROCESS! ${p.exitCode}");
     print(p.stdout);
@@ -596,7 +603,8 @@ Future<void> createModelsPackage(String name) async {
     rightPrompt: (done) =>
         done ? 'Created /$name package' : 'Creating /$name package',
   ).interact();
-  ProcessResult p = await Process.run("flutter", [
+
+  ProcessResult p = await Process.run(flutterPlatformCommand, [
     "create",
     "-t",
     "package",
@@ -608,6 +616,7 @@ Future<void> createModelsPackage(String name) async {
     "-v",
     name
   ]);
+
   if (p.exitCode != 0) {
     print("FAILED TO RUN PROCESS! ${p.exitCode}");
     print(p.stdout);
@@ -616,6 +625,7 @@ Future<void> createModelsPackage(String name) async {
     print("---");
     throw Exception("Failed to create Flutter models package");
   }
+
   creatingLoader.done();
   await setupModelsDependencies(name);
 }

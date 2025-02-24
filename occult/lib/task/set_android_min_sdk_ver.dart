@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:occult/all.dart';
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
 
 class TSetAndroidMinSDKVersion extends OTaskJob {
   final OccultConfiguration config;

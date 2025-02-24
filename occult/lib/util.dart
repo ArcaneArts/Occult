@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:interact/interact.dart';
 import 'package:tint/tint.dart';
+import 'package:universal_io/io.dart';
 
 Theme theme = Theme(
   inputPrefix: '?'.padRight(2).brightCyan(),
@@ -36,6 +36,13 @@ Theme theme = Theme(
   spinners: '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'.split(''),
   spinningInterval: 80,
 );
+
+String flutterPlatformCommand = Platform.isWindows ? "flutter.bat" : "flutter";
+String gcloudPlatformCommand = Platform.isWindows ? "gcloud.cmd" : "gcloud";
+String firebasePlatformCommand =
+    Platform.isWindows ? "firebase.cmd" : "firebase";
+String flutterfirePlatformCommand =
+    Platform.isWindows ? "flutterfire.bat" : "flutterfire";
 
 Future<void> runProcess(String command, List<String> args,
     [String? runIn]) async {

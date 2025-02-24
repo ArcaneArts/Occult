@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:occult/all.dart';
 import 'package:occult/task/set_android_min_sdk_ver.dart';
 import 'package:occult/task/set_ios_platform_version.dart';
 import 'package:occult/task/set_macos_platform_version.dart';
 import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
 
 class TBuildApp extends OTaskExclusiveJob {
   final OccultConfiguration config;
@@ -16,7 +15,7 @@ class TBuildApp extends OTaskExclusiveJob {
   @override
   Future<void> run() async {
     (int, String, String) out = await interactiveSpy(
-        "flutter",
+        flutterPlatformCommand,
         ["build", target, if (target == "web") "--wasm", "--release"],
         "${config.path}${Platform.pathSeparator}${config.name}");
 
@@ -50,8 +49,6 @@ class TBuildApp extends OTaskExclusiveJob {
                 "To build, increase your application's deployment target to at least "))
             .toList();
 
-        print(sl.length);
-
         if (sl.isNotEmpty) {
           String ver = sl.first
               .split(" application's deployment target to at least ")[1]
@@ -73,8 +70,6 @@ class TBuildApp extends OTaskExclusiveJob {
             .where((i) => i.trim().startsWith(
                 "To build, increase your application's deployment target to at least "))
             .toList();
-
-        print(sl.length);
 
         if (sl.isNotEmpty) {
           String ver = sl.first

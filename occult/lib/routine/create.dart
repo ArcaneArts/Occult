@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:interact/interact.dart';
 import 'package:occult/all.dart';
 import 'package:occult/task/apply_templates.dart';
@@ -17,20 +15,22 @@ import 'package:occult/task/run_splash_gen.dart';
 import 'package:occult/task/set_android_min_sdk_ver.dart';
 import 'package:occult/task/set_ios_platform_version.dart';
 import 'package:occult/task/set_macos_platform_version.dart';
+import 'package:occult/util.dart';
 import 'package:occult/util/task_engine.dart';
 import 'package:occult/util/tasks.dart';
+import 'package:path/path.dart' as p;
+import 'package:universal_io/io.dart';
 
 class RoutineSetup extends Routine {
   @override
   Future<void> onRun() async {
-    // Check for CLI tools
     await s(TCheckCLITools([
-      "flutter",
+      flutterPlatformCommand,
       "dart",
-      "firebase",
+      firebasePlatformCommand,
       "npm",
       "flutterfire",
-      "gcloud",
+      gcloudPlatformCommand,
       "docker",
       if (Platform.isMacOS) ...["brew", "pod"]
     ]));
@@ -76,7 +76,7 @@ class RoutineSetup extends Routine {
     confirmMain(
         "4.3. Select ${firebaseProjectID}-server@${firebaseProjectID}.iam.gserviceaccount.com in the list");
     confirmMain(
-        "4.4. Under the KEYS tab click ADD KEY > Create new key > JSON");
+        "4.4. Under the KEYS tab click  ADD KEY > Create new key > JSON");
 
     String? sak;
     while (sak == null) {
@@ -87,16 +87,12 @@ class RoutineSetup extends Routine {
       if (!await keysDir.exists()) {
         await keysDir.create(recursive: true);
       }
-
       sak = (await keysDir
               .list(recursive: false, followLinks: false)
               .where((i) =>
                   i is File &&
                   i.path.endsWith(".json") &&
-                  i.path
-                      .split(Platform.pathSeparator)
-                      .last
-                      .startsWith("${firebaseProjectID}-"))
+                  p.basename(i.path).startsWith("${firebaseProjectID}-"))
               .toList())
           .whereType<File>()
           .firstOrNull
@@ -233,8 +229,10 @@ class RoutineSetup extends Routine {
     s(TaskCopyFile(
         "config/keys/$jsonfilename", "${name}_server/$jsonfilename"));
     s(TSetAndroidMinSDKVersion(config, "23"));
-    s(TSetIMacOSPlatformVersion(config, "10.15"));
-    s(TSetIOSPlatformVersion(config, "13.0"));
+    if (Platform.isMacOS) {
+      s(TSetIMacOSPlatformVersion(config, "10.15"));
+      s(TSetIOSPlatformVersion(config, "13.0"));
+    }
     await TaskEngine.waitFor();
     s(TaskDeleteFolder(".occult"));
     s(TaskDeleteFolder("${name}_models${Platform.pathSeparator}test"));

@@ -1,5 +1,10 @@
+import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
 
 class TFBLogin extends TRunInteractive {
-  TFBLogin() : super("firebase", const ["login"]);
+  TFBLogin()
+      : super(
+          firebasePlatformCommand,
+          const ["login"],
+        );
 }

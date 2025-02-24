@@ -1,6 +1,6 @@
-import 'dart:io';
-
+import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
 
 class TAddPathDep extends OTaskJob {
   final String app;
@@ -10,7 +10,7 @@ class TAddPathDep extends OTaskJob {
 
   @override
   Future<void> run() => add(TRun(
-      "flutter", ["pub", "add", dep, "--path", "../$dep"],
+      flutterPlatformCommand, ["pub", "add", dep, "--path", "../$dep"],
       workingDirectory:
           "${Directory.current.absolute.path}${Platform.pathSeparator}$app"));
 }

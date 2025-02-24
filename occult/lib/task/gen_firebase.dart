@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
 
 class TGenFirebaseJson extends OTaskJob {
   final String project;

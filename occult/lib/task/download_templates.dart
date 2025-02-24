@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:archive/archive.dart';
 import 'package:occult/all.dart';
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
 
 class TDownloadTemplates extends OTaskJob {
   final String project;
@@ -64,7 +63,11 @@ class TDownloadTemplates extends OTaskJob {
       }
     }
 
-    await occult.delete();
+    try {
+      await occult.delete();
+    } catch (e) {
+      // instruct("SKIP occult.zip delete"); //not sure if this is needed
+    }
 
     Directory dir = Directory(
         ".occult/Occult-main/template".replaceAll("/", Platform.pathSeparator));

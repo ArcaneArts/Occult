@@ -11,7 +11,7 @@ class TDeployWeb extends OTaskExclusiveJob {
 
   @override
   Future<void> run() async {
-    await interactive("firebase", [
+    await interactive(firebasePlatformCommand, [
       "deploy",
       "--only",
       "hosting:${config.firebaseProjectId}${beta ? "-beta" : ""}",

@@ -1,3 +1,4 @@
+import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
 
 class TEnableGoogleAPIs extends OTaskJob {
@@ -8,11 +9,13 @@ class TEnableGoogleAPIs extends OTaskJob {
       : super("Enable Google APIs $apis on $project");
 
   @override
-  Future<void> run() => add(TRun("gcloud", [
-        "services",
-        "enable",
-        "artifactregistry.googleapis.com",
-        "run.googleapis.com",
-        "--project=$project"
-      ]));
+  Future<void> run() => add(TRun(
+        gcloudPlatformCommand,
+        [
+          "services",
+          "enable",
+          ...apis,
+          "--project=$project",
+        ],
+      ));
 }

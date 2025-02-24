@@ -9,7 +9,7 @@ class TDeployStorage extends OTaskExclusiveJob {
 
   @override
   Future<void> run() async {
-    await interactive("firebase", [
+    await interactive(firebasePlatformCommand, [
       "deploy",
       "--only",
       "storage",

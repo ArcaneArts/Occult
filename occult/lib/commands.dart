@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cli_annotations/cli_annotations.dart';
 import 'package:occult/all.dart';
 import 'package:occult/routine/create.dart';
@@ -14,6 +12,7 @@ import 'package:occult/task/run_dev_server.dart';
 import 'package:occult/task/run_launcher_icons_gen.dart';
 import 'package:occult/task/run_splash_gen.dart';
 import 'package:occult/util/task_engine.dart';
+import 'package:universal_io/io.dart';
 
 part 'commands.g.dart';
 

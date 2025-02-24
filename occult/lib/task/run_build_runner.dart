@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:occult/util/tasks.dart';
+import 'package:universal_io/io.dart';
 
 class TRunBuildRunner extends OTaskJob {
   final String app;
@@ -9,7 +8,7 @@ class TRunBuildRunner extends OTaskJob {
 
   @override
   Future<void> run() => add(TRun(
-      'dart', ['run', "build_runner", "build", "--delete-conflicting-outputs"],
+      'dart', ['run', 'build_runner', 'build', '--delete-conflicting-outputs'],
       workingDirectory:
           "${Directory.current.absolute.path}${Platform.pathSeparator}$app"));
 }
