@@ -11,21 +11,18 @@ class TBuildProdServer extends OTaskExclusiveJob {
 
   @override
   Future<void> run() async {
-    final flutterCommand = Platform.isWindows ? "flutter.bat" : "flutter";
-    final gcloudCommand = Platform.isWindows ? "gcloud.cmd" : "gcloud";
-
     await interactive(
       "cp",
       ["-r", "../${config.name}_models", "${config.name}_models"],
       "${config.path}${Platform.pathSeparator}${config.name}_server",
     );
     await interactive(
-      flutterCommand,
+      flutterPlatformCommand,
       ["pub", "get"],
       "${config.path}${Platform.pathSeparator}${config.name}_server",
     );
     await interactive(
-      flutterCommand,
+      flutterPlatformCommand,
       ["pub", "get"],
       "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}${config.name}_models",
     );
@@ -53,7 +50,7 @@ class TBuildProdServer extends OTaskExclusiveJob {
     );
 
     await interactive(
-      gcloudCommand,
+      gcloudPlatformCommand,
       ["auth", "configure-docker", "us-central1"],
       "${config.path}${Platform.pathSeparator}${config.name}_server",
     );

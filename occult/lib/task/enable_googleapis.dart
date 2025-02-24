@@ -1,5 +1,5 @@
+import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
-import 'package:universal_io/io.dart';
 
 class TEnableGoogleAPIs extends OTaskJob {
   final List<String> apis;
@@ -10,7 +10,7 @@ class TEnableGoogleAPIs extends OTaskJob {
 
   @override
   Future<void> run() => add(TRun(
-        Platform.isWindows ? "gcloud.cmd" : "gcloud",
+        gcloudPlatformCommand,
         [
           "services",
           "enable",

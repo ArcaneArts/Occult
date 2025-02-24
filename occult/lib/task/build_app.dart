@@ -14,9 +14,8 @@ class TBuildApp extends OTaskExclusiveJob {
 
   @override
   Future<void> run() async {
-    final flutterCommand = Platform.isWindows ? "flutter.bat" : "flutter";
     (int, String, String) out = await interactiveSpy(
-        flutterCommand,
+        flutterPlatformCommand,
         ["build", target, if (target == "web") "--wasm", "--release"],
         "${config.path}${Platform.pathSeparator}${config.name}");
 

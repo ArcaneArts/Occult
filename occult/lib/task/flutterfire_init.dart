@@ -1,3 +1,4 @@
+import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
 import 'package:universal_io/io.dart';
 
@@ -10,10 +11,8 @@ class TFlutterFireInit extends OTaskExclusiveJob {
 
   @override
   Future<void> run() async {
-    final flutterfireCommand =
-        Platform.isWindows ? "flutterfire.bat" : "flutterfire";
     final process = await Process.start(
-      flutterfireCommand,
+      flutterfirePlatformCommand,
       [
         'configure',
         '--project',

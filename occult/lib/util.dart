@@ -37,6 +37,13 @@ Theme theme = Theme(
   spinningInterval: 80,
 );
 
+String flutterPlatformCommand = Platform.isWindows ? "flutter.bat" : "flutter";
+String gcloudPlatformCommand = Platform.isWindows ? "gcloud.cmd" : "gcloud";
+String firebasePlatformCommand =
+    Platform.isWindows ? "firebase.cmd" : "firebase";
+String flutterfirePlatformCommand =
+    Platform.isWindows ? "flutterfire.bat" : "flutterfire";
+
 Future<void> runProcess(String command, List<String> args,
     [String? runIn]) async {
   final process = await Process.start(

@@ -12,9 +12,8 @@ class TDeployProdServer extends OTaskExclusiveJob {
   @override
   Future<void> run() async {
     await TBuildProdServer(config).run();
-    String gcloudCommand = Platform.isWindows ? "gcloud.cmd" : "gcloud";
     await interactive(
-        gcloudCommand,
+        gcloudPlatformCommand,
         [
           "beta",
           "run",

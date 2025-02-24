@@ -15,30 +15,22 @@ import 'package:occult/task/run_splash_gen.dart';
 import 'package:occult/task/set_android_min_sdk_ver.dart';
 import 'package:occult/task/set_ios_platform_version.dart';
 import 'package:occult/task/set_macos_platform_version.dart';
+import 'package:occult/util.dart';
 import 'package:occult/util/task_engine.dart';
 import 'package:occult/util/tasks.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
 
-String getCliCommand(String command) {
-  if (Platform.isWindows) {
-    if (command == "flutter") return "flutter.bat";
-    if (command == "firebase") return "firebase.cmd";
-    if (command == "gcloud") return "gcloud.cmd";
-  }
-  return command;
-}
-
 class RoutineSetup extends Routine {
   @override
   Future<void> onRun() async {
     await s(TCheckCLITools([
-      getCliCommand("flutter"),
+      flutterPlatformCommand,
       "dart",
-      getCliCommand("firebase"),
+      firebasePlatformCommand,
       "npm",
       "flutterfire",
-      getCliCommand("gcloud"),
+      gcloudPlatformCommand,
       "docker",
       if (Platform.isMacOS) ...["brew", "pod"]
     ]));

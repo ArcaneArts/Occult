@@ -443,8 +443,6 @@ Future<void> createFirebaseRC(String projectname) async {
 }
 
 Future<void> enableGcloudArtifactRegistry(String project) async {
-  final String gcloudCommand = Platform.isWindows ? 'gcloud.cmd' : 'gcloud';
-
   final runner = Spinner(
     icon: '✔'.padRight(2).green(),
     leftPrompt: (done) => '',
@@ -453,7 +451,7 @@ Future<void> enableGcloudArtifactRegistry(String project) async {
         : 'Enabling GCP Artifact Registry',
   ).interact();
 
-  ProcessResult p = await Process.run(gcloudCommand, [
+  ProcessResult p = await Process.run(gcloudPlatformCommand, [
     "services",
     "enable",
     "artifactregistry.googleapis.com",
@@ -480,9 +478,7 @@ Future<void> enableGcloudRun(String project) async {
         done ? 'Enabled GCP Cloud Run' : 'Enabling GCP Cloud Run',
   ).interact();
 
-  final String gcloudCommand = Platform.isWindows ? 'gcloud.cmd' : 'gcloud';
-
-  ProcessResult p = await Process.run(gcloudCommand,
+  ProcessResult p = await Process.run(gcloudPlatformCommand,
       ["services", "enable", "run.googleapis.com", "--project=$project"]);
 
   if (p.exitCode != 0) {
@@ -529,9 +525,7 @@ Future<void> createFlutterProject(String name, String org) async {
         : 'Creating /$name Flutter project',
   ).interact();
 
-  final String flutterCommand = Platform.isWindows ? 'flutter.bat' : 'flutter';
-
-  ProcessResult p = await Process.run(flutterCommand, [
+  ProcessResult p = await Process.run(flutterPlatformCommand, [
     "create",
     "--platforms=android,ios,web,linux,windows,macos",
     "-a",
@@ -573,9 +567,7 @@ Future<void> createServerProject(
         : 'Creating /$name Flutter project',
   ).interact();
 
-  final String flutterCommand = Platform.isWindows ? 'flutter.bat' : 'flutter';
-
-  ProcessResult p = await Process.run(flutterCommand, [
+  ProcessResult p = await Process.run(flutterPlatformCommand, [
     "create",
     "--platforms=linux",
     "-t",
@@ -612,9 +604,7 @@ Future<void> createModelsPackage(String name) async {
         done ? 'Created /$name package' : 'Creating /$name package',
   ).interact();
 
-  final String flutterCommand = Platform.isWindows ? 'flutter.bat' : 'flutter';
-
-  ProcessResult p = await Process.run(flutterCommand, [
+  ProcessResult p = await Process.run(flutterPlatformCommand, [
     "create",
     "-t",
     "package",

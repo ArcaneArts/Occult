@@ -1,3 +1,4 @@
+import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
 import 'package:universal_io/io.dart';
 
@@ -11,7 +12,7 @@ class TCreateAppProject extends OTaskJob {
   @override
   Future<void> run() => add(
         TRun(
-          Platform.isWindows ? "flutter.bat" : "flutter",
+          flutterPlatformCommand,
           [
             "create",
             "--platforms=android,ios,web,linux,windows,macos",
@@ -42,7 +43,7 @@ class TAppDeps extends OTaskJob {
   @override
   Future<void> run() => add(
         TRun(
-          Platform.isWindows ? "flutter.bat" : "flutter",
+          flutterPlatformCommand,
           [
             "pub",
             "add",
@@ -88,7 +89,7 @@ class TAppDevDeps extends OTaskJob {
   @override
   Future<void> run() => add(
         TRun(
-          Platform.isWindows ? "flutter.bat" : "flutter",
+          flutterPlatformCommand,
           ["pub", "add", "flutter_launcher_icons", "--dev"],
           workingDirectory:
               "${Directory.current.absolute.path}${Platform.pathSeparator}$app",

@@ -1,3 +1,4 @@
+import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
 import 'package:universal_io/io.dart';
 
@@ -9,7 +10,7 @@ class TCreateModelsProject extends OTaskJob {
   @override
   Future<void> run() => add(
         TRun(
-          Platform.isWindows ? "flutter.bat" : "flutter",
+          flutterPlatformCommand,
           [
             "create",
             "-t",
@@ -36,7 +37,7 @@ class TModelsDeps extends OTaskJob {
   @override
   Future<void> run() => add(
         TRun(
-          Platform.isWindows ? "flutter.bat" : "flutter",
+          flutterPlatformCommand,
           [
             "pub",
             "add",
@@ -66,7 +67,7 @@ class TModelsDevDeps extends OTaskJob {
   @override
   Future<void> run() => add(
         TRun(
-          Platform.isWindows ? "flutter.bat" : "flutter",
+          flutterPlatformCommand,
           ["pub", "add", "build_runner", "dart_mappable_builder", "--dev"],
           workingDirectory:
               "${Directory.current.absolute.path}${Platform.pathSeparator}${app}_models",

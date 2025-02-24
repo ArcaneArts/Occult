@@ -14,10 +14,9 @@ class TBuildDevServer extends OTaskExclusiveJob {
         "cp",
         ["-r", "../${config.name}_models", "${config.name}_models"],
         "${config.path}${Platform.pathSeparator}${config.name}_server");
-    final flutterCommand = Platform.isWindows ? "flutter.bat" : "flutter";
-    await interactive(flutterCommand, ["pub", "get"],
+    await interactive(flutterPlatformCommand, ["pub", "get"],
         "${config.path}${Platform.pathSeparator}${config.name}_server");
-    await interactive(flutterCommand, ["pub", "get"],
+    await interactive(flutterPlatformCommand, ["pub", "get"],
         "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}${config.name}_models");
     await interactive("rm", ["-rf", ".dart_tool"],
         "${config.path}${Platform.pathSeparator}${config.name}_server${Platform.pathSeparator}${config.name}_models");

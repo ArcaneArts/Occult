@@ -1,4 +1,5 @@
 import 'package:occult/task/install_libmagick.dart';
+import 'package:occult/util.dart';
 import 'package:occult/util/tasks.dart';
 import 'package:universal_io/io.dart';
 
@@ -12,7 +13,7 @@ class TCreateServerProject extends OTaskJob {
   @override
   Future<void> run() => add(
         TRun(
-          Platform.isWindows ? "flutter.bat" : "flutter",
+          flutterPlatformCommand,
           [
             "create",
             "--platforms=linux",
@@ -41,7 +42,7 @@ class TServerDeps extends OTaskJob {
 
   @override
   Future<void> run() => add(TRun(
-        Platform.isWindows ? "flutter.bat" : "flutter",
+        flutterPlatformCommand,
         [
           "pub",
           "add",
