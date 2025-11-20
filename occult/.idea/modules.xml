@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/occult.iml" filepath="$PROJECT_DIR$/occult.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../occult_gui/occult_gui.iml" filepath="$PROJECT_DIR$/../occult_gui/occult_gui.iml" />
     </modules>
   </component>
 </project>
