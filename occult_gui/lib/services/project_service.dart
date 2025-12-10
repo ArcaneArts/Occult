@@ -173,8 +173,9 @@ class ProjectService {
         config.appName,
       ];
 
-      if (config.template.platforms.isNotEmpty) {
-        args.addAll(['--platforms', config.template.platforms.join(',')]);
+      // Use selected platforms (user may have deselected some)
+      if (config.selectedPlatforms.isNotEmpty) {
+        args.addAll(['--platforms', config.selectedPlatforms.join(',')]);
       }
 
       args.add(projectPath);
@@ -318,7 +319,7 @@ ORG_DOMAIN=${config.orgDomain}
 BASE_CLASS_NAME=${config.baseClassName}
 TEMPLATE_NAME=${config.template.name}
 OUTPUT_DIR=${config.outputDir}
-PLATFORMS=${config.template.platforms.join(',')}
+PLATFORMS=${config.selectedPlatforms.join(',')}
 CREATE_MODELS=${config.createModels ? 'yes' : 'no'}
 CREATE_SERVER=${config.createServer ? 'yes' : 'no'}
 USE_FIREBASE=${config.useFirebase ? 'yes' : 'no'}

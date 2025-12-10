@@ -34,10 +34,9 @@ class ProjectCreator {
       config.appName,
     ];
 
-    // Add platforms based on template
-    final platforms = config.template.supportedPlatforms;
-    if (platforms.isNotEmpty) {
-      args.addAll(['--platforms', platforms.join(',')]);
+    // Add platforms from config (user may have selected subset)
+    if (config.platforms.isNotEmpty) {
+      args.addAll(['--platforms', config.platforms.join(',')]);
     }
 
     // Add the project path

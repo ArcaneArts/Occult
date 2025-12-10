@@ -420,7 +420,7 @@ class _WizardScreenState extends State<WizardScreen> {
     final isSelected = _config.template == template;
 
     return GestureDetector(
-      onTap: () => setState(() => _config.template = template),
+      onTap: () => setState(() => _config.updateTemplate(template)),
       child: Card(
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -490,6 +490,28 @@ class _WizardScreenState extends State<WizardScreen> {
           style: TextStyle(color: theme.colorScheme.mutedForeground),
         ),
         const Gap(24),
+        // Platform selection (only for templates that allow it)
+        if (_config.template.allowsPlatformSelection) ...[
+          Section(
+            titleText: 'Target Platforms',
+            subtitleText: 'Select which platforms to build for',
+            child: Column(
+              children: _config.template.platforms
+                  .map((platform) => Tile(
+                        title: Text(_getPlatformDisplayName(platform)),
+                        leading: Icon(_getPlatformIcon(platform)),
+                        trailing: Switch(
+                          value: _config.isPlatformSelected(platform),
+                          onChanged: (v) {
+                            setState(() => _config.togglePlatform(platform));
+                          },
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ),
+          const Gap(16),
+        ],
         Section(
           titleText: 'Additional Packages',
           child: Column(
@@ -759,6 +781,44 @@ class _WizardScreenState extends State<WizardScreen> {
         return theme.colorScheme.destructive;
       case LogLevel.verbose:
         return theme.colorScheme.mutedForeground;
+    }
+  }
+
+  String _getPlatformDisplayName(String platform) {
+    switch (platform) {
+      case 'android':
+        return 'Android';
+      case 'ios':
+        return 'iOS';
+      case 'web':
+        return 'Web';
+      case 'linux':
+        return 'Linux';
+      case 'macos':
+        return 'macOS';
+      case 'windows':
+        return 'Windows';
+      default:
+        return platform;
+    }
+  }
+
+  IconData _getPlatformIcon(String platform) {
+    switch (platform) {
+      case 'android':
+        return Icons.device_mobile;
+      case 'ios':
+        return Icons.device_mobile;
+      case 'web':
+        return Icons.globe;
+      case 'linux':
+        return Icons.desktop;
+      case 'macos':
+        return Icons.desktop;
+      case 'windows':
+        return Icons.desktop;
+      default:
+        return Icons.device_mobile;
     }
   }
 }

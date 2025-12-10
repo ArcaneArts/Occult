@@ -35,13 +35,13 @@ extension $UserSettings on _7{
   _3 toToml()=>_0.u(toMap);
   _3 toXml({bool pretty=_F})=>_0.z(pretty,toMap);
   _3 toProperties()=>_0.h(toMap);
-  _1 toMap(){_;return <_3, _4>{_S[5]:themeMode.toMap(),}.$nn;}
+  _1 toMap(){_;return <_3, _4>{_S[5]:themeMode.name,}.$nn;}
   static _7 fromJson(String j)=>fromMap(_0.o(j));
   static _7 fromYaml(String j)=>fromMap(_0.v(j));
   static _7 fromToon(String j)=>fromMap(_0.i(j));
   static _7 fromToml(String j)=>fromMap(_0.t(j));
   static _7 fromProperties(String j)=>fromMap(_0.g(j));
-  static _7 fromMap(_1 r){_;_1 m=r.$nn;return _7(themeMode: m.$c(_S[5]) ? $ThemeMode.fromMap((m[_S[5]]) as _1) : _V[0],);}
+  static _7 fromMap(_1 r){_;_1 m=r.$nn;return _7(themeMode: m.$c(_S[5]) ? _0.e(ThemeMode.values, m[_S[5]]) as ThemeMode : _V[0],);}
   _7 copyWith({_f? themeMode,_e resetThemeMode=_F,})=>_7(themeMode: resetThemeMode?_V[0]:(themeMode??_H.themeMode),);
   static _7 get newInstance=>_7();
 }

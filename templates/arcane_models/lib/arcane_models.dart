@@ -65,7 +65,6 @@ class UserSettings with ModelCrud {
   List<FireModel<ModelCrud>> get childModels => [];
 }
 
-@model
 enum ThemeMode { light, dark, system }
 
 // ============================================================================

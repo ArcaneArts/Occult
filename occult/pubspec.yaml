@@ -31,7 +31,7 @@ dev_dependencies:
   build_runner: ^2.4.13
   cli_gen: ^0.1.0
   lints: ^6.0.0
-  test: ^1.24.0
+  test: ^1.28.0
 
 # Define executable name (allows: dart pub global activate)
 executables:
@@ -48,11 +48,6 @@ scripts:
   test_coverage: dart test --coverage=coverage
   test_verbose: dart test --reporter=expanded
 
-  # Code Quality
-  analyze: dart analyze
-  format: dart format .
-  format_check: dart format --set-exit-if-changed .
-  fix: dart fix --apply
 
   # Local Installation (for development)
   activate: dart pub global activate . --source=path

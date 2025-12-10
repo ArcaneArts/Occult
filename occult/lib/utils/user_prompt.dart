@@ -206,4 +206,51 @@ class UserPrompt {
     stdout.write(message);
     stdin.readLineSync();
   }
+
+  /// Show a multi-select checkbox menu for platforms
+  /// Returns list of selected platform names
+  static Future<List<String>> askMultiSelect(
+    String title,
+    List<String> options, {
+    List<String>? defaultSelected,
+  }) async {
+    final selected = Set<String>.from(defaultSelected ?? options);
+
+    print('\n$title');
+    print('\u2500' * 60);
+    print('Toggle with number, Enter when done:');
+    print('\u2500' * 60);
+
+    while (true) {
+      // Display options with checkboxes
+      for (int i = 0; i < options.length; i++) {
+        final isSelected = selected.contains(options[i]);
+        final checkbox = isSelected ? '[\u2713]' : '[ ]';
+        print('  ${i + 1}. $checkbox ${options[i]}');
+      }
+      print('\u2500' * 60);
+      stdout.write('Toggle (1-${options.length}) or Enter to confirm: ');
+
+      final input = stdin.readLineSync()?.trim();
+
+      if (input == null || input.isEmpty) {
+        // User pressed Enter, return selection
+        return selected.toList();
+      }
+
+      final selection = int.tryParse(input);
+      if (selection != null && selection >= 1 && selection <= options.length) {
+        final option = options[selection - 1];
+        if (selected.contains(option)) {
+          selected.remove(option);
+        } else {
+          selected.add(option);
+        }
+        // Clear and redraw (move cursor up)
+        for (int i = 0; i < options.length + 3; i++) {
+          stdout.write('\x1B[1A\x1B[2K'); // Move up and clear line
+        }
+      }
+    }
+  }
 }

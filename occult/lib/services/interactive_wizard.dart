@@ -138,6 +138,22 @@ class InteractiveWizard {
       defaultValue: Directory.current.path,
     );
 
+    // Platform selection (only for Flutter apps, not CLI or Dock)
+    List<String> selectedPlatforms = template.supportedPlatforms;
+    if (template.isFlutterApp && template != TemplateType.arcaneDock) {
+      print('');
+      selectedPlatforms = await UserPrompt.askMultiSelect(
+        'Select target platforms:',
+        template.supportedPlatforms,
+        defaultSelected: template.supportedPlatforms,
+      );
+
+      if (selectedPlatforms.isEmpty) {
+        warn('At least one platform must be selected');
+        selectedPlatforms = template.supportedPlatforms;
+      }
+    }
+
     // Models package
     print('');
     final createModels = await UserPrompt.askYesNo(
@@ -187,7 +203,7 @@ class InteractiveWizard {
       useFirebase: useFirebase,
       firebaseProjectId: firebaseProjectId,
       setupCloudRun: setupCloudRun,
-      platforms: template.supportedPlatforms,
+      platforms: selectedPlatforms,
     );
   }
 
