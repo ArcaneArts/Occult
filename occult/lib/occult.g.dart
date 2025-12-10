@@ -28,6 +28,7 @@ class _$OccultRunner<T extends dynamic> extends CommandRunner<dynamic> {
     addCommand(upcastedType.config);
     addCommand(upcastedType.gui);
     addCommand(upcastedType.hello);
+    addCommand(upcastedType.scripts);
 
     argParser.addFlag(
       'version',

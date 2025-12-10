@@ -9,6 +9,7 @@ import 'commands/create_command.dart';
 import 'commands/deploy_command.dart';
 import 'commands/gui_command.dart';
 import 'commands/hello_command.dart';
+import 'commands/script_command.dart';
 
 part 'occult.g.dart';
 
@@ -52,4 +53,8 @@ class OccultRunner extends _$OccultRunner {
   /// Hello world demo command
   @cliMount
   HelloCommand get hello => HelloCommand();
+
+  /// Run scripts from pubspec.yaml
+  @cliMount
+  ScriptsCommand get scripts => ScriptsCommand();
 }
