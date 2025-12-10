@@ -54,7 +54,14 @@ class SetupConfig {
     this.firebaseProjectId,
     this.setupCloudRun = false,
     this.serviceAccountKeyPath,
-    this.platforms = const ['android', 'ios', 'web', 'linux', 'macos', 'windows'],
+    this.platforms = const [
+      'android',
+      'ios',
+      'web',
+      'linux',
+      'macos',
+      'windows',
+    ],
   });
 
   /// Create config with defaults
@@ -94,7 +101,8 @@ class SetupConfig {
       useFirebase: useFirebase ?? this.useFirebase,
       firebaseProjectId: firebaseProjectId ?? this.firebaseProjectId,
       setupCloudRun: setupCloudRun ?? this.setupCloudRun,
-      serviceAccountKeyPath: serviceAccountKeyPath ?? this.serviceAccountKeyPath,
+      serviceAccountKeyPath:
+          serviceAccountKeyPath ?? this.serviceAccountKeyPath,
       platforms: platforms ?? this.platforms,
     );
   }
@@ -113,7 +121,8 @@ class SetupConfig {
 
   /// Save configuration to file
   Future<void> saveToFile(String path) async {
-    final content = '''
+    final content =
+        '''
 # Occultist Setup Configuration
 # Generated: ${DateTime.now().toIso8601String()}
 
@@ -164,7 +173,8 @@ ${serviceAccountKeyPath != null ? 'SERVICE_ACCOUNT_KEY=$serviceAccountKeyPath' :
       baseClassName: values['BASE_CLASS_NAME'] ?? 'MyApp',
       template: template,
       outputDir: values['OUTPUT_DIR'] ?? Directory.current.path,
-      platforms: (values['PLATFORMS'] ?? 'android,ios,web,linux,macos,windows').split(','),
+      platforms: (values['PLATFORMS'] ?? 'android,ios,web,linux,macos,windows')
+          .split(','),
       createModels: values['CREATE_MODELS'] == 'yes',
       createServer: values['CREATE_SERVER'] == 'yes',
       useFirebase: values['USE_FIREBASE'] == 'yes',
@@ -210,5 +220,6 @@ setup_cloud_run: $setupCloudRun
   }
 
   @override
-  String toString() => 'SetupConfig(appName: $appName, template: ${template.name})';
+  String toString() =>
+      'SetupConfig(appName: $appName, template: ${template.name})';
 }

@@ -57,8 +57,16 @@ class InteractiveWizard {
     print('');
     print('\u2554' + '\u2550' * 60 + '\u2557');
     print('\u2551' + ' ' * 60 + '\u2551');
-    print('\u2551' + '              Welcome to Occult Setup Wizard'.padRight(60) + '\u2551');
-    print('\u2551' + '               Arcane Template System'.padRight(60) + '\u2551');
+    print(
+      '\u2551' +
+          '              Welcome to Occult Setup Wizard'.padRight(60) +
+          '\u2551',
+    );
+    print(
+      '\u2551' +
+          '               Arcane Template System'.padRight(60) +
+          '\u2551',
+    );
     print('\u2551' + ' ' * 60 + '\u2551');
     print('\u255a' + '\u2550' * 60 + '\u255d');
     print('');
@@ -265,7 +273,9 @@ class InteractiveWizard {
     );
 
     if (!setupNow) {
-      info('You can run Firebase setup later with: occult deploy firebase-setup');
+      info(
+        'You can run Firebase setup later with: occult deploy firebase-setup',
+      );
       return;
     }
 
@@ -300,7 +310,11 @@ class InteractiveWizard {
     print('');
     print('\u2554' + '\u2550' * 60 + '\u2557');
     print('\u2551' + ' ' * 60 + '\u2551');
-    print('\u2551' + '              Project Created Successfully!'.padRight(60) + '\u2551');
+    print(
+      '\u2551' +
+          '              Project Created Successfully!'.padRight(60) +
+          '\u2551',
+    );
     print('\u2551' + ' ' * 60 + '\u2551');
     print('\u255a' + '\u2550' * 60 + '\u255d');
     print('');

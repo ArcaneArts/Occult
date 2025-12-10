@@ -23,7 +23,11 @@ class ToolChecker {
     }
 
     final version = await _runner.getCommandVersion('flutter');
-    return ToolStatus.installed('Flutter', version ?? 'unknown', isRequired: true);
+    return ToolStatus.installed(
+      'Flutter',
+      version ?? 'unknown',
+      isRequired: true,
+    );
   }
 
   /// Check if Dart is installed and get version
@@ -53,7 +57,11 @@ class ToolChecker {
     }
 
     final version = await _runner.getCommandVersion('firebase');
-    return ToolStatus.installed('Firebase CLI', version ?? 'unknown', isRequired: false);
+    return ToolStatus.installed(
+      'Firebase CLI',
+      version ?? 'unknown',
+      isRequired: false,
+    );
   }
 
   /// Check if FlutterFire CLI is installed
@@ -68,7 +76,11 @@ class ToolChecker {
     }
 
     final version = await _runner.getCommandVersion('flutterfire');
-    return ToolStatus.installed('FlutterFire CLI', version ?? 'unknown', isRequired: false);
+    return ToolStatus.installed(
+      'FlutterFire CLI',
+      version ?? 'unknown',
+      isRequired: false,
+    );
   }
 
   /// Check if gcloud is installed
@@ -82,10 +94,17 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion('gcloud', versionArgs: ['--version']);
+    final version = await _runner.getCommandVersion(
+      'gcloud',
+      versionArgs: ['--version'],
+    );
     // Extract just the first line with version info
     final versionLine = version?.split('\n').first ?? 'unknown';
-    return ToolStatus.installed('Google Cloud SDK', versionLine, isRequired: false);
+    return ToolStatus.installed(
+      'Google Cloud SDK',
+      versionLine,
+      isRequired: false,
+    );
   }
 
   /// Check if Docker is installed
@@ -100,7 +119,11 @@ class ToolChecker {
     }
 
     final version = await _runner.getCommandVersion('docker');
-    return ToolStatus.installed('Docker', version ?? 'unknown', isRequired: false);
+    return ToolStatus.installed(
+      'Docker',
+      version ?? 'unknown',
+      isRequired: false,
+    );
   }
 
   /// Check if npm is installed (needed for Firebase CLI)
@@ -139,7 +162,11 @@ class ToolChecker {
     }
 
     final version = await _runner.getCommandVersion('pod');
-    return ToolStatus.installed('CocoaPods', version ?? 'unknown', isRequired: false);
+    return ToolStatus.installed(
+      'CocoaPods',
+      version ?? 'unknown',
+      isRequired: false,
+    );
   }
 
   /// Check if Homebrew is installed (macOS only)
@@ -163,17 +190,18 @@ class ToolChecker {
     }
 
     final version = await _runner.getCommandVersion('brew');
-    return ToolStatus.installed('Homebrew', version ?? 'unknown', isRequired: false);
+    return ToolStatus.installed(
+      'Homebrew',
+      version ?? 'unknown',
+      isRequired: false,
+    );
   }
 
   /// Check all required tools
   Future<ToolCheckResult> checkRequired() async {
     info('Checking required tools...');
 
-    final tools = await Future.wait([
-      checkFlutter(),
-      checkDart(),
-    ]);
+    final tools = await Future.wait([checkFlutter(), checkDart()]);
 
     return ToolCheckResult(tools: tools);
   }
@@ -214,10 +242,7 @@ class ToolChecker {
   Future<ToolCheckResult> checkServerTools() async {
     info('Checking server deployment tools...');
 
-    final tools = await Future.wait([
-      checkDocker(),
-      checkGcloud(),
-    ]);
+    final tools = await Future.wait([checkDocker(), checkGcloud()]);
 
     return ToolCheckResult(tools: tools);
   }

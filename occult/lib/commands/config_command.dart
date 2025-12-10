@@ -14,7 +14,8 @@ part 'config_command.g.dart';
 class ConfigCommand extends _$ConfigCommand {
   /// Get the configuration directory path
   String get configDir {
-    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    final home =
+        Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home == null) {
       throw Exception('Could not determine home directory');
     }
@@ -44,7 +45,8 @@ class ConfigCommand extends _$ConfigCommand {
     await Directory(configDir).create(recursive: true);
 
     // Write default configuration
-    final defaultConfig = '''
+    final defaultConfig =
+        '''
 # Occult Configuration File
 # Generated: ${DateTime.now().toIso8601String()}
 

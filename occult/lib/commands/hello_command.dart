@@ -17,6 +17,7 @@ class HelloCommand extends _$HelloCommand {
   Future<void> greet(
     /// The name to greet
     String name, {
+
     /// Number of times to repeat the greeting
     int times = 1,
 

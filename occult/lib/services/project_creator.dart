@@ -13,7 +13,7 @@ class ProjectCreator {
   final ProcessRunner _runner;
 
   ProjectCreator(this.config, {ProcessRunner? runner})
-      : _runner = runner ?? ProcessRunner();
+    : _runner = runner ?? ProcessRunner();
 
   /// Create a Flutter app project
   Future<bool> createFlutterApp() async {
@@ -69,12 +69,7 @@ class ProjectCreator {
     info('Creating Dart CLI: ${config.appName}');
 
     // Use dart create for CLI projects
-    final args = [
-      'create',
-      '-t',
-      'console',
-      projectPath,
-    ];
+    final args = ['create', '-t', 'console', projectPath];
 
     final result = await _runner.runWithRetry(
       'dart',
@@ -226,8 +221,10 @@ class ProjectCreator {
 
     final projectPaths = [
       p.join(config.outputDir, config.appName),
-      if (config.createModels) p.join(config.outputDir, config.modelsPackageName),
-      if (config.createServer) p.join(config.outputDir, config.serverPackageName),
+      if (config.createModels)
+        p.join(config.outputDir, config.modelsPackageName),
+      if (config.createServer)
+        p.join(config.outputDir, config.serverPackageName),
     ];
 
     for (final projectPath in projectPaths) {

@@ -12,7 +12,7 @@ class ServerSetup {
   final ProcessRunner _runner;
 
   ServerSetup(this.config, {ProcessRunner? runner})
-      : _runner = runner ?? ProcessRunner();
+    : _runner = runner ?? ProcessRunner();
 
   /// Get the server project path
   String get serverPath => p.join(config.outputDir, config.serverPackageName);
@@ -23,7 +23,8 @@ class ServerSetup {
 
     info('Generating Dockerfile...');
 
-    final content = '''
+    final content =
+        '''
 # Production Dockerfile for ${config.serverPackageName}
 # Multi-stage build for minimal image size
 
@@ -81,7 +82,8 @@ EXPOSE 8080
 
 # Run the server
 CMD ["./\$SERVER_NAME"]
-'''.replaceAll('\$SERVER_NAME', config.serverPackageName);
+'''
+            .replaceAll('\$SERVER_NAME', config.serverPackageName);
 
     final file = File(p.join(serverPath, 'Dockerfile'));
     await file.writeAsString(content);
@@ -94,7 +96,8 @@ CMD ["./\$SERVER_NAME"]
 
     info('Generating Dockerfile-dev...');
 
-    final content = '''
+    final content =
+        '''
 # Development Dockerfile for ${config.serverPackageName}
 # Includes Flutter SDK for debugging
 
@@ -156,7 +159,8 @@ CMD ["flutter", "run", "-d", "linux"]
 
     info('Generating deploy script...');
 
-    final content = '''
+    final content =
+        '''
 #!/bin/bash
 # Deployment script for ${config.serverPackageName}
 
@@ -247,7 +251,14 @@ echo "Service URL: https://\$SERVICE_NAME-\$PROJECT_ID.\$REGION.run.app"
 
     final result = await _runner.runWithRetry(
       'docker',
-      ['build', '--platform', 'linux/amd64', '-t', config.serverPackageName, '.'],
+      [
+        'build',
+        '--platform',
+        'linux/amd64',
+        '-t',
+        config.serverPackageName,
+        '.',
+      ],
       workingDirectory: serverPath,
       operationName: 'Docker build',
     );
@@ -261,17 +272,14 @@ echo "Service URL: https://\$SERVICE_NAME-\$PROJECT_ID.\$REGION.run.app"
 
     info('Running server in Docker (development)...');
 
-    final result = await _runner.runStreaming(
-      'docker',
-      [
-        'run',
-        '-p',
-        '8080:8080',
-        '-v',
-        '$serverPath:/app',
-        config.serverPackageName,
-      ],
-    );
+    final result = await _runner.runStreaming('docker', [
+      'run',
+      '-p',
+      '8080:8080',
+      '-v',
+      '$serverPath:/app',
+      config.serverPackageName,
+    ]);
 
     return result == 0;
   }

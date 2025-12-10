@@ -6,9 +6,11 @@ String snakeToPascal(String snake) {
   if (snake.isEmpty) return snake;
   return snake
       .split('_')
-      .map((word) => word.isEmpty
-          ? ''
-          : word[0].toUpperCase() + word.substring(1).toLowerCase())
+      .map(
+        (word) => word.isEmpty
+            ? ''
+            : word[0].toUpperCase() + word.substring(1).toLowerCase(),
+      )
       .join();
 }
 

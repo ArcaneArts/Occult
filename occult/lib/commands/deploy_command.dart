@@ -20,7 +20,11 @@ part 'deploy_command.g.dart';
 class DeployCommand extends _$DeployCommand {
   /// Load configuration from the current directory
   Future<SetupConfig?> _loadConfig() async {
-    final configPath = p.join(Directory.current.path, 'config', 'setup_config.env');
+    final configPath = p.join(
+      Directory.current.path,
+      'config',
+      'setup_config.env',
+    );
     return await SetupConfig.loadFromFile(configPath);
   }
 

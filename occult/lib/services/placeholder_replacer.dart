@@ -4,9 +4,11 @@ import 'package:fast_log/fast_log.dart';
 import 'package:path/path.dart' as p;
 
 import '../models/setup_config.dart';
-import '../utils/string_utils.dart';
 
 /// Service for replacing placeholders in template files
+///
+/// Templates use canonical names (arcane_app, arcane_cli_app, etc.) that are
+/// replaced with the user's actual app name when scaffolding a new project.
 class PlaceholderReplacer {
   final SetupConfig config;
 
@@ -50,45 +52,78 @@ class PlaceholderReplacer {
   }
 
   /// Replace all placeholders in a string
-  /// IMPORTANT: Order matters! Class names (PascalCase) must be replaced BEFORE snake_case
+  /// Templates use real working names that get replaced with user's names
   String replaceInContent(String content) {
     var result = content;
 
     // 1. Replace class names first (PascalCase patterns) to avoid double replacement
-    // APPNAMEServer -> MyAppServer
-    result = result.replaceAll('APPNAMEServer', config.serverClassName);
+    // ArcaneServer -> MyAppServer
+    result = result.replaceAll('ArcaneServer', config.serverClassName);
 
-    // APPNAMERunner -> MyAppRunner
-    result = result.replaceAll('APPNAMERunner', config.runnerClassName);
+    // ArcaneRunner -> MyAppRunner
+    result = result.replaceAll('ArcaneRunner', config.runnerClassName);
 
-    // APPNAME in PascalCase context (like class names)
-    // Be careful here - only replace when followed by typical class name contexts
-    result = result.replaceAll(RegExp(r'APPNAME(?=[A-Z])'), config.baseClassName);
+    // 2. Replace package imports - order matters, longer names first
+    // package:arcane_beamer_app/ -> package:my_app/
+    result = result.replaceAll(
+      'package:arcane_beamer_app/',
+      'package:${config.appName}/',
+    );
+    // package:arcane_dock_app/ -> package:my_app/
+    result = result.replaceAll(
+      'package:arcane_dock_app/',
+      'package:${config.appName}/',
+    );
+    // package:arcane_cli_app/ -> package:my_app/
+    result = result.replaceAll(
+      'package:arcane_cli_app/',
+      'package:${config.appName}/',
+    );
+    // package:arcane_app/ -> package:my_app/
+    result = result.replaceAll(
+      'package:arcane_app/',
+      'package:${config.appName}/',
+    );
 
-    // 2. Replace snake_case patterns
-    // APPNAME -> my_app (in most contexts)
-    result = result.replaceAll('APPNAME', config.appName);
+    // 3. Replace models package references
+    result = result.replaceAll(
+      'package:arcane_models/',
+      'package:${config.modelsPackageName}/',
+    );
+    result = result.replaceAll('arcane_models', config.modelsPackageName);
 
-    // 3. Replace Firebase project ID
+    // 4. Replace server package references
+    result = result.replaceAll('arcane_server', config.serverPackageName);
+
+    // 5. Replace app names in various contexts (order matters - longer names first)
+    // These are the canonical template names
+    result = result.replaceAll('arcane_beamer_app', config.appName);
+    result = result.replaceAll('arcane_dock_app', config.appName);
+    result = result.replaceAll('arcane_cli_app', config.appName);
+    result = result.replaceAll('arcane_app', config.appName);
+
+    // 6. Replace Firebase project ID
     if (config.firebaseProjectId != null) {
-      result = result.replaceAll('FIREBASE_PROJECT_ID', config.firebaseProjectId!);
+      result = result.replaceAll(
+        'FIREBASE_PROJECT_ID',
+        config.firebaseProjectId!,
+      );
     }
 
-    // 4. Replace organization domain
+    // 7. Replace organization domain patterns
+    // art.arcane.template -> com.example.myapp
+    result = result.replaceAll(
+      'art.arcane.template',
+      '${config.orgDomain}.${config.appName.replaceAll('_', '')}',
+    );
     result = result.replaceAll('ORG_DOMAIN', config.orgDomain);
 
-    // 5. Replace package imports
-    // package:arcane_template/ -> package:my_app/
-    // package:arcane_beamer/ -> package:my_app/
-    // etc.
-    result = result.replaceAll('package:arcane_template/', 'package:${config.appName}/');
-    result = result.replaceAll('package:arcane_beamer/', 'package:${config.appName}/');
-    result = result.replaceAll('package:arcane_dock/', 'package:${config.appName}/');
-    result = result.replaceAll('package:arcane_cli/', 'package:${config.appName}/');
-
-    // 6. Replace models package imports
-    result = result.replaceAll('package:models_template/', 'package:${config.modelsPackageName}/');
-    result = result.replaceAll('package:APPNAME_models/', 'package:${config.modelsPackageName}/');
+    // 8. Replace display names in platform configs (e.g., Windows, Linux titles)
+    // These show up in window titles, app manifests, etc.
+    result = result.replaceAll('Arcane Template', config.baseClassName);
+    result = result.replaceAll('Arcane Beamer', config.baseClassName);
+    result = result.replaceAll('Arcane Dock', config.baseClassName);
+    result = result.replaceAll('Arcane CLI', config.baseClassName);
 
     return result;
   }
@@ -97,11 +132,14 @@ class PlaceholderReplacer {
   String replaceInFilename(String filename) {
     var result = filename;
 
-    // APPNAME_models.dart -> my_app_models.dart
-    result = result.replaceAll('APPNAME_models', '${config.appName}_models');
+    // arcane_models.dart -> my_app_models.dart
+    result = result.replaceAll('arcane_models', config.modelsPackageName);
 
-    // APPNAME.dart -> my_app.dart
-    result = result.replaceAll('APPNAME', config.appName);
+    // arcane_cli_app.dart -> my_app.dart (and .g.dart files)
+    result = result.replaceAll('arcane_cli_app', config.appName);
+    result = result.replaceAll('arcane_beamer_app', config.appName);
+    result = result.replaceAll('arcane_dock_app', config.appName);
+    result = result.replaceAll('arcane_app', config.appName);
 
     return result;
   }
@@ -223,12 +261,12 @@ class PlaceholderReplacer {
         'firebase_auth',
         'cloud_firestore',
         'firebase_storage',
+        'arcane_fluf',
+        'arcane_auth',
+        'fire_crud',
       ];
       for (final pkg in firebasePackages) {
-        content = content.replaceAll(
-          RegExp(r'#\s*' + pkg + r':'),
-          '$pkg:',
-        );
+        content = content.replaceAll(RegExp(r'#\s*' + pkg + r':'), '$pkg:');
       }
     }
 
@@ -253,12 +291,14 @@ class PlaceholderReplacer {
 
     if (match != null) {
       final insertPosition = match.end;
-      final modelsDep = '''
+      final modelsDep =
+          '''
 
   ${config.modelsPackageName}:
     path: ../${config.modelsPackageName}
 ''';
-      content = content.substring(0, insertPosition) +
+      content =
+          content.substring(0, insertPosition) +
           modelsDep +
           content.substring(insertPosition);
 

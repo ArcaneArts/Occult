@@ -1,14 +1,21 @@
+# IDE
+.idea/
+.intellij/
+*.iml
 
-occult/test/
+# Dart/Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+pubspec.lock
 
+# macOS
 .DS_Store
 
+# Project specific
+occult/test/
 config/
-
-occult/.idea/
-
 .claude/
-
-.idea/
-
 CLAUDE.md

@@ -22,7 +22,9 @@ class CheckCommand extends _$CheckCommand {
     result.printSummary();
 
     if (!result.allRequiredInstalled) {
-      error('Some required tools are missing. Please install them before continuing.');
+      error(
+        'Some required tools are missing. Please install them before continuing.',
+      );
     } else {
       success('All required tools are installed!');
     }
@@ -89,7 +91,9 @@ class CheckCommand extends _$CheckCommand {
       success('Google Cloud SDK is installed');
       print('Version: ${status.version}');
     } else {
-      warn('Google Cloud SDK is not installed (needed for Cloud Run deployment)');
+      warn(
+        'Google Cloud SDK is not installed (needed for Cloud Run deployment)',
+      );
       print('Install: ${status.installInstructions}');
     }
   }

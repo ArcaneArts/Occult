@@ -68,14 +68,19 @@ class CreateCommand extends _$CreateCommand {
     /// Path to service account key file
     String? serviceAccountKey,
   }) async {
-    UserPrompt.printBanner('Occult Project Creator', subtitle: 'Arcane Template System');
+    UserPrompt.printBanner(
+      'Occult Project Creator',
+      subtitle: 'Arcane Template System',
+    );
 
     // Check required tools first
     if (!skipCheck) {
       final checker = ToolChecker();
       final result = await checker.checkRequired();
       if (!result.allRequiredInstalled) {
-        error('Required tools are missing. Run "occult check tools" for details.');
+        error(
+          'Required tools are missing. Run "occult check tools" for details.',
+        );
         exit(1);
       }
     }
@@ -100,7 +105,9 @@ class CreateCommand extends _$CreateCommand {
     if (!yes) {
       UserPrompt.printConfigPreview(config.toDisplayMap());
 
-      final confirmed = await UserPrompt.askYesNo('Proceed with these settings?');
+      final confirmed = await UserPrompt.askYesNo(
+        'Proceed with these settings?',
+      );
       if (!confirmed) {
         warn('Operation cancelled');
         return;
@@ -162,7 +169,8 @@ class CreateCommand extends _$CreateCommand {
         'Enter app name (snake_case)',
         defaultValue: 'my_app',
         validator: (s) => validateAppName(s).isValid,
-        validationMessage: 'Invalid app name. Use lowercase letters, numbers, and underscores.',
+        validationMessage:
+            'Invalid app name. Use lowercase letters, numbers, and underscores.',
       );
     } else {
       error('--app-name is required');
@@ -196,7 +204,9 @@ class CreateCommand extends _$CreateCommand {
     } else if (interactive) {
       final templateIndex = await UserPrompt.showMenu(
         'Select a template:',
-        TemplateType.values.map((t) => '${t.displayName}\n      ${t.description}').toList(),
+        TemplateType.values
+            .map((t) => '${t.displayName}\n      ${t.description}')
+            .toList(),
         defaultIndex: 0,
       );
       finalTemplate = TemplateType.values[templateIndex];
@@ -214,20 +224,29 @@ class CreateCommand extends _$CreateCommand {
     // Models package
     bool finalWithModels = withModels;
     if (!withModels && interactive) {
-      finalWithModels = await UserPrompt.askYesNo('Create models package?', defaultValue: false);
+      finalWithModels = await UserPrompt.askYesNo(
+        'Create models package?',
+        defaultValue: false,
+      );
     }
 
     // Server app
     bool finalWithServer = withServer;
     if (!withServer && interactive) {
-      finalWithServer = await UserPrompt.askYesNo('Create server app?', defaultValue: false);
+      finalWithServer = await UserPrompt.askYesNo(
+        'Create server app?',
+        defaultValue: false,
+      );
     }
 
     // Firebase
     bool finalWithFirebase = withFirebase;
     String? finalFirebaseProjectId = firebaseProjectId;
     if (interactive && !withFirebase) {
-      finalWithFirebase = await UserPrompt.askYesNo('Enable Firebase?', defaultValue: false);
+      finalWithFirebase = await UserPrompt.askYesNo(
+        'Enable Firebase?',
+        defaultValue: false,
+      );
     }
     if (finalWithFirebase && finalFirebaseProjectId == null && interactive) {
       finalFirebaseProjectId = await UserPrompt.askString(
@@ -240,7 +259,10 @@ class CreateCommand extends _$CreateCommand {
     // Cloud Run
     bool finalWithCloudRun = withCloudRun;
     if (finalWithServer && interactive && !withCloudRun) {
-      finalWithCloudRun = await UserPrompt.askYesNo('Setup Cloud Run for server?', defaultValue: false);
+      finalWithCloudRun = await UserPrompt.askYesNo(
+        'Setup Cloud Run for server?',
+        defaultValue: false,
+      );
     }
 
     return SetupConfig(

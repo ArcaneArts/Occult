@@ -5,7 +5,10 @@ import 'package:fast_log/fast_log.dart';
 /// Utility class for interactive user prompts
 class UserPrompt {
   /// Ask a yes/no question
-  static Future<bool> askYesNo(String question, {bool defaultValue = true}) async {
+  static Future<bool> askYesNo(
+    String question, {
+    bool defaultValue = true,
+  }) async {
     final defaultHint = defaultValue ? '[Y/n]' : '[y/N]';
     stdout.write('$question $defaultHint: ');
 
@@ -52,7 +55,10 @@ class UserPrompt {
   }
 
   /// Ask for a number input
-  static Future<int> askInt(String question, {required int defaultValue}) async {
+  static Future<int> askInt(
+    String question, {
+    required int defaultValue,
+  }) async {
     stdout.write('$question [$defaultValue]: ');
 
     final input = stdin.readLineSync()?.trim();
@@ -65,7 +71,11 @@ class UserPrompt {
   }
 
   /// Show a menu and get user selection
-  static Future<int> showMenu(String title, List<String> options, {int? defaultIndex}) async {
+  static Future<int> showMenu(
+    String title,
+    List<String> options, {
+    int? defaultIndex,
+  }) async {
     print('\n$title');
     print('\u2500' * 60);
 
@@ -95,7 +105,10 @@ class UserPrompt {
   }
 
   /// Show a pretty configuration preview box
-  static void printConfigPreview(Map<String, String> config, {String title = 'Configuration Preview'}) {
+  static void printConfigPreview(
+    Map<String, String> config, {
+    String title = 'Configuration Preview',
+  }) {
     const int width = 60;
     final line = '\u2500' * width;
 
@@ -117,7 +130,9 @@ class UserPrompt {
       final padding = (width - text.length) ~/ 2;
       content = ' ' * padding + text + ' ' * (width - padding - text.length);
     } else {
-      content = text.length > width ? text.substring(0, width) : text.padRight(width);
+      content = text.length > width
+          ? text.substring(0, width)
+          : text.padRight(width);
     }
     print('\u2502 $content \u2502');
   }
@@ -159,7 +174,8 @@ class UserPrompt {
 
   static void _printBannerLine(String text, int width) {
     final padding = (width - text.length) ~/ 2;
-    final content = ' ' * padding + text + ' ' * (width - padding - text.length);
+    final content =
+        ' ' * padding + text + ' ' * (width - padding - text.length);
     print('\u2551 $content \u2551');
   }
 
@@ -184,7 +200,9 @@ class UserPrompt {
   }
 
   /// Press enter to continue
-  static Future<void> pressEnter({String message = 'Press Enter to continue...'}) async {
+  static Future<void> pressEnter({
+    String message = 'Press Enter to continue...',
+  }) async {
     stdout.write(message);
     stdin.readLineSync();
   }

@@ -12,7 +12,7 @@ class FirebaseService {
   final ProcessRunner _runner;
 
   FirebaseService(this.config, {ProcessRunner? runner})
-      : _runner = runner ?? ProcessRunner();
+    : _runner = runner ?? ProcessRunner();
 
   /// Login to Firebase CLI
   Future<bool> login() async {
@@ -41,11 +41,7 @@ class FirebaseService {
 
     info('Configuring FlutterFire...');
 
-    final args = [
-      'configure',
-      '--project',
-      config.firebaseProjectId!,
-    ];
+    final args = ['configure', '--project', config.firebaseProjectId!];
 
     // Add platforms based on template
     for (final platform in config.platforms) {
@@ -171,32 +167,26 @@ class FirebaseService {
     info('Enabling Google Cloud APIs...');
 
     // Enable Artifact Registry
-    var result = await _runner.run(
-      'gcloud',
-      [
-        'services',
-        'enable',
-        'artifactregistry.googleapis.com',
-        '--project',
-        config.firebaseProjectId!,
-      ],
-    );
+    var result = await _runner.run('gcloud', [
+      'services',
+      'enable',
+      'artifactregistry.googleapis.com',
+      '--project',
+      config.firebaseProjectId!,
+    ]);
 
     if (!result.success) {
       warn('Failed to enable Artifact Registry API');
     }
 
     // Enable Cloud Run
-    result = await _runner.run(
-      'gcloud',
-      [
-        'services',
-        'enable',
-        'run.googleapis.com',
-        '--project',
-        config.firebaseProjectId!,
-      ],
-    );
+    result = await _runner.run('gcloud', [
+      'services',
+      'enable',
+      'run.googleapis.com',
+      '--project',
+      config.firebaseProjectId!,
+    ]);
 
     if (!result.success) {
       warn('Failed to enable Cloud Run API');

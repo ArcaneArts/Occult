@@ -13,7 +13,7 @@ class DependencyManager {
   final ProcessRunner _runner;
 
   DependencyManager(this.config, {ProcessRunner? runner})
-      : _runner = runner ?? ProcessRunner();
+    : _runner = runner ?? ProcessRunner();
 
   /// Run flutter pub get in a project
   Future<bool> flutterPubGet(String projectPath) async {
@@ -44,7 +44,11 @@ class DependencyManager {
   }
 
   /// Add a dependency to a project using flutter pub add
-  Future<bool> addDependency(String projectPath, String package, {bool isDev = false}) async {
+  Future<bool> addDependency(
+    String projectPath,
+    String package, {
+    bool isDev = false,
+  }) async {
     info('Adding dependency: $package to ${p.basename(projectPath)}');
 
     final args = ['pub', 'add'];
@@ -179,14 +183,21 @@ class DependencyManager {
     final modelsPath = '../${config.modelsPackageName}';
 
     // Link to main app
-    final appPubspec = File(p.join(config.outputDir, config.appName, 'pubspec.yaml'));
+    final appPubspec = File(
+      p.join(config.outputDir, config.appName, 'pubspec.yaml'),
+    );
     await _addPathDependency(appPubspec, config.modelsPackageName, modelsPath);
 
     // Link to server
     if (config.createServer) {
       final serverPubspec = File(
-          p.join(config.outputDir, config.serverPackageName, 'pubspec.yaml'));
-      await _addPathDependency(serverPubspec, config.modelsPackageName, modelsPath);
+        p.join(config.outputDir, config.serverPackageName, 'pubspec.yaml'),
+      );
+      await _addPathDependency(
+        serverPubspec,
+        config.modelsPackageName,
+        modelsPath,
+      );
     }
 
     success('Models package linked to projects');
@@ -212,11 +223,17 @@ class DependencyManager {
     }
 
     // Find dependencies: section and add after it
-    final dependenciesMatch = RegExp(r'^dependencies:\s*$', multiLine: true).firstMatch(content);
+    final dependenciesMatch = RegExp(
+      r'^dependencies:\s*$',
+      multiLine: true,
+    ).firstMatch(content);
     if (dependenciesMatch != null) {
       final insertPoint = dependenciesMatch.end;
       final dependencyLine = '\n  $packageName:\n    path: $relativePath\n';
-      content = content.substring(0, insertPoint) + dependencyLine + content.substring(insertPoint);
+      content =
+          content.substring(0, insertPoint) +
+          dependencyLine +
+          content.substring(insertPoint);
       await pubspecFile.writeAsString(content);
       verbose('  Added $packageName to ${p.basename(pubspecFile.parent.path)}');
     }

@@ -6,7 +6,7 @@ part of 'occult.dart';
 // CliRunnerGenerator
 // **************************************************************************
 
-const String version = '1.0.0';
+const String version = '2.0.0';
 
 /// Occult CLI - Arcane Template System
 ///

@@ -42,10 +42,7 @@ class ProcessRunner {
   /// Whether to show verbose output
   final bool showVerbose;
 
-  ProcessRunner({
-    this.maxAutoRetries = 2,
-    this.showVerbose = false,
-  });
+  ProcessRunner({this.maxAutoRetries = 2, this.showVerbose = false});
 
   /// Run a command and return the result
   Future<ProcessResult> run(
@@ -166,10 +163,9 @@ class ProcessRunner {
   /// Check if a command exists on the system
   Future<bool> commandExists(String command) async {
     try {
-      final result = await run(
-        Platform.isWindows ? 'where' : 'which',
-        [command],
-      );
+      final result = await run(Platform.isWindows ? 'where' : 'which', [
+        command,
+      ]);
       return result.success;
     } catch (e) {
       return false;

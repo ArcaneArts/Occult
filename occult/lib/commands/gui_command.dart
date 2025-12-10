@@ -33,7 +33,8 @@ class GuiCommand extends _$GuiCommand {
     if (guiPath == null) {
       error("Could not find occult_gui project.");
       error(
-          "The GUI project should be located at: ../occult_gui relative to occult");
+        "The GUI project should be located at: ../occult_gui relative to occult",
+      );
       exit(1);
     }
 

@@ -21,7 +21,7 @@ dependencies:
   # Utilities
   fast_log: ^1.0.7
   toxic: ^1.3.8
-  artifact: ^1.0.19
+  artifact: ^1.0.20
   http: ^1.6.0
   path: ^1.9.1
   yaml: ^3.1.3
@@ -42,6 +42,17 @@ scripts:
   build: dart run build_runner build --delete-conflicting-outputs
   watch: dart run build_runner watch -d
   run: dart run bin/main.dart
+
+  # Testing
+  test: dart test
+  test_coverage: dart test --coverage=coverage
+  test_verbose: dart test --reporter=expanded
+
+  # Code Quality
+  analyze: dart analyze
+  format: dart format .
+  format_check: dart format --set-exit-if-changed .
+  fix: dart fix --apply
 
   # Local Installation (for development)
   activate: dart pub global activate . --source=path

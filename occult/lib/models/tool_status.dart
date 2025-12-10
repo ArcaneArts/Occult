@@ -15,7 +15,11 @@ class ToolStatus {
   });
 
   /// Create a status for an installed tool
-  factory ToolStatus.installed(String name, String version, {bool isRequired = false}) {
+  factory ToolStatus.installed(
+    String name,
+    String version, {
+    bool isRequired = false,
+  }) {
     return ToolStatus(
       name: name,
       isInstalled: true,
@@ -25,7 +29,11 @@ class ToolStatus {
   }
 
   /// Create a status for a missing tool
-  factory ToolStatus.missing(String name, String installInstructions, {bool isRequired = false}) {
+  factory ToolStatus.missing(
+    String name,
+    String installInstructions, {
+    bool isRequired = false,
+  }) {
     return ToolStatus(
       name: name,
       isInstalled: false,
@@ -52,9 +60,15 @@ class ToolCheckResult {
   final List<ToolStatus> missingOptional;
 
   ToolCheckResult({required this.tools})
-      : allRequiredInstalled = tools.where((t) => t.isRequired && !t.isInstalled).isEmpty,
-        missingRequired = tools.where((t) => t.isRequired && !t.isInstalled).toList(),
-        missingOptional = tools.where((t) => !t.isRequired && !t.isInstalled).toList();
+    : allRequiredInstalled = tools
+          .where((t) => t.isRequired && !t.isInstalled)
+          .isEmpty,
+      missingRequired = tools
+          .where((t) => t.isRequired && !t.isInstalled)
+          .toList(),
+      missingOptional = tools
+          .where((t) => !t.isRequired && !t.isInstalled)
+          .toList();
 
   /// Get all installed tools
   List<ToolStatus> get installed => tools.where((t) => t.isInstalled).toList();

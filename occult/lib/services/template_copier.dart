@@ -12,8 +12,7 @@ class TemplateCopier {
   final SetupConfig config;
   late final PlaceholderReplacer _replacer;
 
-  /// Path to the embedded templates directory
-  /// This will be resolved relative to the package location
+  /// Path to the templates directory (sibling to occult package)
   late final String templatesBasePath;
 
   TemplateCopier(this.config) {
@@ -22,7 +21,7 @@ class TemplateCopier {
   }
 
   /// Find the templates directory
-  /// First tries the package's lib/templates, then falls back to relative path
+  /// Templates are now in a sibling 'templates/' folder, not embedded in lib/
   String _findTemplatesPath() {
     // Try to find templates relative to the script
     final scriptPath = Platform.script.toFilePath();
@@ -30,14 +29,16 @@ class TemplateCopier {
 
     // Check various possible locations
     final possiblePaths = [
-      // When running from pub global activate
-      p.join(scriptDir, '..', 'lib', 'templates'),
-      // When running locally with dart run
-      p.join(scriptDir, '..', 'lib', 'templates'),
-      // When running from the package directory
-      p.join(Directory.current.path, 'lib', 'templates'),
+      // When running from pub global activate - templates sibling to package
+      p.join(scriptDir, '..', '..', 'templates'),
+      // When running locally with dart run from occult/ directory
+      p.join(scriptDir, '..', '..', 'templates'),
+      // When running from the occult package directory
+      p.join(Directory.current.path, '..', 'templates'),
+      // When running from the Occult monorepo root
+      p.join(Directory.current.path, 'templates'),
       // Absolute path for development
-      '/Users/brianfopiano/Developer/RemoteGit/ArcaneArts/arcane_templates/Occult/occult/lib/templates',
+      '/Users/brianfopiano/Developer/RemoteGit/ArcaneArts/Occult/templates',
     ];
 
     for (final path in possiblePaths) {
@@ -50,7 +51,7 @@ class TemplateCopier {
 
     // Fallback to current directory
     warn('Templates directory not found, using current directory');
-    return p.join(Directory.current.path, 'lib', 'templates');
+    return p.join(Directory.current.path, 'templates');
   }
 
   /// Get the path to a specific template
@@ -60,7 +61,9 @@ class TemplateCopier {
 
   /// Copy the main app template to the output directory
   Future<void> copyAppTemplate() async {
-    final templateDir = Directory(getTemplatePath(config.template.directoryName));
+    final templateDir = Directory(
+      getTemplatePath(config.template.directoryName),
+    );
     final targetDir = Directory(p.join(config.outputDir, config.appName));
 
     if (!templateDir.existsSync()) {
@@ -91,8 +94,10 @@ class TemplateCopier {
   Future<void> copyModelsTemplate() async {
     if (!config.createModels) return;
 
-    final templateDir = Directory(getTemplatePath('models_template'));
-    final targetDir = Directory(p.join(config.outputDir, config.modelsPackageName));
+    final templateDir = Directory(getTemplatePath('arcane_models'));
+    final targetDir = Directory(
+      p.join(config.outputDir, config.modelsPackageName),
+    );
 
     if (!templateDir.existsSync()) {
       throw Exception('Models template not found: ${templateDir.path}');
@@ -117,8 +122,10 @@ class TemplateCopier {
   Future<void> copyServerTemplate() async {
     if (!config.createServer) return;
 
-    final templateDir = Directory(getTemplatePath('server_template'));
-    final targetDir = Directory(p.join(config.outputDir, config.serverPackageName));
+    final templateDir = Directory(getTemplatePath('arcane_server'));
+    final targetDir = Directory(
+      p.join(config.outputDir, config.serverPackageName),
+    );
 
     if (!templateDir.existsSync()) {
       throw Exception('Server template not found: ${templateDir.path}');
@@ -255,7 +262,9 @@ class TemplateCopier {
     final files = <String>[];
 
     // Main app
-    final appTemplate = Directory(getTemplatePath(config.template.directoryName));
+    final appTemplate = Directory(
+      getTemplatePath(config.template.directoryName),
+    );
     if (appTemplate.existsSync()) {
       await for (final entity in appTemplate.list(recursive: true)) {
         if (entity is File) {

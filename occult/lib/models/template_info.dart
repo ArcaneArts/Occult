@@ -1,10 +1,5 @@
 /// Available template types
-enum TemplateType {
-  arcaneTemplate,
-  arcaneBeamer,
-  arcaneDock,
-  arcaneCli,
-}
+enum TemplateType { arcaneTemplate, arcaneBeamer, arcaneDock, arcaneCli }
 
 /// Extension for template metadata
 extension TemplateTypeExtension on TemplateType {
@@ -22,17 +17,31 @@ extension TemplateTypeExtension on TemplateType {
     }
   }
 
-  /// Get the directory name for the template
+  /// Get the directory name for the template (in sibling templates/ folder)
   String get directoryName {
     switch (this) {
       case TemplateType.arcaneTemplate:
-        return 'arcane_template';
+        return 'arcane_app';
       case TemplateType.arcaneBeamer:
-        return 'arcane_beamer';
+        return 'arcane_beamer_app';
       case TemplateType.arcaneDock:
-        return 'arcane_dock';
+        return 'arcane_dock_app';
       case TemplateType.arcaneCli:
-        return 'arcane_cli';
+        return 'arcane_cli_app';
+    }
+  }
+
+  /// Get the canonical package name used in the template
+  String get canonicalPackageName {
+    switch (this) {
+      case TemplateType.arcaneTemplate:
+        return 'arcane_app';
+      case TemplateType.arcaneBeamer:
+        return 'arcane_beamer_app';
+      case TemplateType.arcaneDock:
+        return 'arcane_dock_app';
+      case TemplateType.arcaneCli:
+        return 'arcane_cli_app';
     }
   }
 
@@ -106,7 +115,8 @@ extension TemplateTypeExtension on TemplateType {
 
     // Try parsing as name
     for (final template in TemplateType.values) {
-      if (template.directoryName == lower || template.name.toLowerCase() == lower) {
+      if (template.directoryName == lower ||
+          template.name.toLowerCase() == lower) {
         return template;
       }
     }

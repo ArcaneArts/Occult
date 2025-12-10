@@ -20,7 +20,8 @@ class ConfigGenerator {
 
     info('Generating firebase.json...');
 
-    final content = '''
+    final content =
+        '''
 {
   "firestore": {
     "rules": "config/firestore.rules",
@@ -78,7 +79,8 @@ class ConfigGenerator {
 
     info('Generating .firebaserc...');
 
-    final content = '''
+    final content =
+        '''
 {
   "projects": {
     "default": "${config.firebaseProjectId}"
