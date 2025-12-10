@@ -6,3 +6,9 @@ occult/test/
 config/
 
 occult/.idea/
+
+.claude/
+
+.idea/
+
+CLAUDE.md

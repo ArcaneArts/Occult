@@ -1,16 +1,57 @@
-# occult_gui
+```
+  ██████╗  ██████╗ ██████╗██╗   ██╗██╗  ████████╗     ██████╗ ██╗   ██╗██╗
+ ██╔═══██╗██╔════╝██╔════╝██║   ██║██║  ╚══██╔══╝    ██╔════╝ ██║   ██║██║
+ ██║   ██║██║     ██║     ██║   ██║██║     ██║       ██║  ███╗██║   ██║██║
+ ██║   ██║██║     ██║     ██║   ██║██║     ██║       ██║   ██║██║   ██║██║
+ ╚██████╔╝╚██████╗╚██████╗╚██████╔╝███████╗██║       ╚██████╔╝╚██████╔╝██║
+  ╚═════╝  ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝        ╚═════╝  ╚═════╝ ╚═╝
+```
 
-A new Flutter project.
+Visual project creation wizard for Arcane Templates.
 
-## Getting Started
+## Platforms
 
-This project is a starting point for a Flutter application.
+- macOS
+- Linux
+- Windows
 
-A few resources to get you started if this is your first Flutter project:
+## Development
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+flutter pub get
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Run on Specific Platform
+
+```bash
+flutter run -d macos
+flutter run -d linux
+flutter run -d windows
+```
+
+### Build
+
+```bash
+flutter build macos
+flutter build linux
+flutter build windows
+```
+
+## Architecture
+
+```
+lib/
+├── main.dart           App entry point
+├── screens/
+│   └── wizard_screen.dart   Project configuration UI
+├── models/
+│   └── wizard_config.dart   Configuration state
+└── services/           Business logic
+```
+
+## Dependencies
+
+- arcane - UI framework
+- pylon - UI toolkit
+- file_picker - Directory selection

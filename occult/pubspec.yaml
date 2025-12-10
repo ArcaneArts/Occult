@@ -1,35 +1,14 @@
 name: occult
-description: "Arcane Template System - Create production-ready Flutter and Dart projects"
-version: 1.0.0
-
-# ============================================================================
-# PUBLISHING TO PUB.DEV
-# ============================================================================
-# To publish this CLI globally (so anyone can run: dart pub global activate occult):
-#
-# 1. Remove or comment out the 'publish_to: none' line below
-# 2. Fill in the repository/homepage fields
-# 3. Run: dart pub publish --dry-run (to verify)
-# 4. Run: dart pub publish (to publish)
-#
-# Once published, anyone can install with:
-#   dart pub global activate occult
-#   occult --help
-#
-# Uncomment this line to PREVENT publishing (keeps it private):
-# publish_to: 'none'
-
-# Uncomment and fill these in before publishing:
-# homepage: https://github.com/ArcaneArts/occult
-# repository: https://github.com/ArcaneArts/occult
-# issue_tracker: https://github.com/ArcaneArts/occult/issues
-
-# Optional: Add topics for discoverability on pub.dev
-# topics:
-#   - cli
-#   - flutter
-#   - arcane
-#   - templates
+description: "Arcane Template System - Create production-ready Flutter and Dart projects CLI & GUI"
+version: 2.0.0
+homepage: https://github.com/ArcaneArts/occult
+repository: https://github.com/ArcaneArts/occult
+issue_tracker: https://github.com/ArcaneArts/occult/issues
+topics:
+  - cli
+  - flutter
+  - arcane
+  - templates
 
 environment:
   sdk: ^3.10.0

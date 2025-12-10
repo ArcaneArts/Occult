@@ -40,8 +40,8 @@ class _OccultGuiAppState extends State<OccultGuiApp> {
       debugShowCheckedModeBanner: false,
       theme: ArcaneTheme(
         scheme: ContrastedColorScheme(
-          light: ColorSchemes.blue(ThemeMode.light),
-          dark: ColorSchemes.blue(ThemeMode.dark),
+          light: ColorSchemes.violet(ThemeMode.light),
+          dark: ColorSchemes.orange(ThemeMode.dark),
         ),
         themeMode: _themeMode,
       ),
@@ -52,12 +52,12 @@ class _OccultGuiAppState extends State<OccultGuiApp> {
 
 extension OccultGuiAppContext on BuildContext {
   void toggleTheme() {
-    final state = findAncestorStateOfType<_OccultGuiAppState>();
+    final _OccultGuiAppState? state = findAncestorStateOfType<_OccultGuiAppState>();
     state?._toggleTheme();
   }
 
   ThemeMode get currentThemeMode {
-    final state = findAncestorStateOfType<_OccultGuiAppState>();
+    final _OccultGuiAppState? state = findAncestorStateOfType<_OccultGuiAppState>();
     return state?._themeMode ?? ThemeMode.system;
   }
 }
