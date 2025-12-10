@@ -7,7 +7,7 @@ String snakeToPascal(String snake) {
   return snake
       .split('_')
       .map(
-        (word) => word.isEmpty
+        (String word) => word.isEmpty
             ? ''
             : word[0].toUpperCase() + word.substring(1).toLowerCase(),
       )
@@ -17,7 +17,7 @@ String snakeToPascal(String snake) {
 /// Convert snake_case to camelCase
 /// Example: "my_app_name" -> "myAppName"
 String snakeToCamel(String snake) {
-  final pascal = snakeToPascal(snake);
+  final String pascal = snakeToPascal(snake);
   if (pascal.isEmpty) return pascal;
   return pascal[0].toLowerCase() + pascal.substring(1);
 }
@@ -26,9 +26,9 @@ String snakeToCamel(String snake) {
 /// Example: "MyAppName" -> "my_app_name"
 String toSnakeCase(String input) {
   if (input.isEmpty) return input;
-  final buffer = StringBuffer();
+  final StringBuffer buffer = StringBuffer();
   for (int i = 0; i < input.length; i++) {
-    final char = input[i];
+    final String char = input[i];
     if (char.toUpperCase() == char && char.toLowerCase() != char) {
       if (i > 0) buffer.write('_');
       buffer.write(char.toLowerCase());

@@ -8,13 +8,13 @@ import 'package:yaml/yaml.dart';
 class ScriptRunner {
   /// Find the nearest pubspec.yaml by walking up the directory tree
   File? findPubspec([String? startDir]) {
-    var dir = Directory(startDir ?? Directory.current.path);
+    Directory dir = Directory(startDir ?? Directory.current.path);
 
     while (true) {
-      final pubspec = File(p.join(dir.path, 'pubspec.yaml'));
+      final File pubspec = File(p.join(dir.path, 'pubspec.yaml'));
       if (pubspec.existsSync()) return pubspec;
 
-      final parent = dir.parent;
+      final Directory parent = dir.parent;
       if (parent.path == dir.path) return null;
       dir = parent;
     }
@@ -22,36 +22,36 @@ class ScriptRunner {
 
   /// Parse scripts from pubspec.yaml
   Map<String, String> getScripts([String? pubspecPath]) {
-    final pubspec = pubspecPath != null ? File(pubspecPath) : findPubspec();
-    if (pubspec == null || !pubspec.existsSync()) return {};
+    final File? pubspec = pubspecPath != null ? File(pubspecPath) : findPubspec();
+    if (pubspec == null || !pubspec.existsSync()) return <String, String>{};
 
     try {
-      final content = pubspec.readAsStringSync();
-      final yaml = loadYaml(content) as YamlMap?;
-      if (yaml == null) return {};
+      final String content = pubspec.readAsStringSync();
+      final YamlMap? yaml = loadYaml(content) as YamlMap?;
+      if (yaml == null) return <String, String>{};
 
-      final scripts = yaml['scripts'];
-      if (scripts == null || scripts is! YamlMap) return {};
+      final dynamic scripts = yaml['scripts'];
+      if (scripts == null || scripts is! YamlMap) return <String, String>{};
 
-      return Map.fromEntries(
-        scripts.entries.map((e) => MapEntry(e.key.toString(), e.value.toString())),
+      return Map<String, String>.fromEntries(
+        scripts.entries.map((MapEntry<dynamic, dynamic> e) => MapEntry<String, String>(e.key.toString(), e.value.toString())),
       );
-    } catch (e) {
+    } on Exception catch (e) {
       error('Failed to parse pubspec.yaml: $e');
-      return {};
+      return <String, String>{};
     }
   }
 
   /// Get project name from pubspec.yaml
   String? getProjectName([String? pubspecPath]) {
-    final pubspec = pubspecPath != null ? File(pubspecPath) : findPubspec();
+    final File? pubspec = pubspecPath != null ? File(pubspecPath) : findPubspec();
     if (pubspec == null || !pubspec.existsSync()) return null;
 
     try {
-      final content = pubspec.readAsStringSync();
-      final yaml = loadYaml(content) as YamlMap?;
+      final String content = pubspec.readAsStringSync();
+      final YamlMap? yaml = loadYaml(content) as YamlMap?;
       return yaml?['name']?.toString();
-    } catch (_) {
+    } on Exception {
       return null;
     }
   }
@@ -62,21 +62,21 @@ class ScriptRunner {
     if (scripts.containsKey(query)) return query;
 
     // Case-insensitive match
-    final lower = query.toLowerCase();
-    for (final key in scripts.keys) {
+    final String lower = query.toLowerCase();
+    for (final String key in scripts.keys) {
       if (key.toLowerCase() == lower) return key;
     }
 
     // Prefix match
-    final prefixMatches = scripts.keys.where((k) => k.toLowerCase().startsWith(lower)).toList();
+    final List<String> prefixMatches = scripts.keys.where((String k) => k.toLowerCase().startsWith(lower)).toList();
     if (prefixMatches.length == 1) return prefixMatches.first;
 
     // Contains match
-    final containsMatches = scripts.keys.where((k) => k.toLowerCase().contains(lower)).toList();
+    final List<String> containsMatches = scripts.keys.where((String k) => k.toLowerCase().contains(lower)).toList();
     if (containsMatches.length == 1) return containsMatches.first;
 
     // Abbreviation match (e.g., "br" matches "build_runner", "pi" matches "pod_install")
-    final abbrevMatches = scripts.keys.where((k) => _matchesAbbreviation(lower, k)).toList();
+    final List<String> abbrevMatches = scripts.keys.where((String k) => _matchesAbbreviation(lower, k)).toList();
     if (abbrevMatches.length == 1) return abbrevMatches.first;
 
     return null;
@@ -85,19 +85,19 @@ class ScriptRunner {
   /// Check if query matches as an abbreviation of script name
   /// e.g., "br" matches "build_runner", "df" matches "deploy_firebase"
   bool _matchesAbbreviation(String query, String scriptName) {
-    final parts = scriptName.toLowerCase().split('_');
+    final List<String> parts = scriptName.toLowerCase().split('_');
     if (parts.length < 2) return false;
 
     // Build abbreviation from first letters
-    final abbrev = parts.map((p) => p.isNotEmpty ? p[0] : '').join();
+    final String abbrev = parts.map((String p) => p.isNotEmpty ? p[0] : '').join();
     return abbrev.startsWith(query);
   }
 
   /// Get all matching scripts for ambiguous query
   List<String> findMatchingScripts(String query, Map<String, String> scripts) {
-    final lower = query.toLowerCase();
-    return scripts.keys.where((k) {
-      final kLower = k.toLowerCase();
+    final String lower = query.toLowerCase();
+    return scripts.keys.where((String k) {
+      final String kLower = k.toLowerCase();
       return kLower.contains(lower) || _matchesAbbreviation(lower, k);
     }).toList();
   }

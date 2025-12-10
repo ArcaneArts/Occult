@@ -13,9 +13,9 @@ class RetryPrompt {
     print('');
     warn('$operationName failed.');
 
-    final choice = Select(
+    final int choice = Select(
       prompt: 'What would you like to do?',
-      options: ['🔄 Retry', '⏭️ Skip', '🛑 Abort'],
+      options: <String>['🔄 Retry', '⏭️ Skip', '🛑 Abort'],
       initialIndex: 0,
     ).interact();
 
@@ -32,7 +32,8 @@ class RetryPrompt {
 
     while (attempts < maxRetries) {
       try {
-        return await action();
+        final T result = await action();
+        return result;
       } catch (e) {
         attempts++;
         error('$operationName failed: $e');
@@ -42,7 +43,7 @@ class RetryPrompt {
           return null;
         }
 
-        final choice = await askRetryChoice(operationName);
+        final RetryChoice choice = await askRetryChoice(operationName);
         switch (choice) {
           case RetryChoice.retry:
             info('Retrying... (attempt ${attempts + 1}/$maxRetries)');

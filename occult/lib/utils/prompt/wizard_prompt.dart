@@ -21,7 +21,7 @@ class WizardStep {
 class WizardPrompt {
   /// Display a step indicator
   static void printStepIndicator(int currentStep, int totalSteps, String stepName) {
-    final steps = List.generate(totalSteps, (i) {
+    final String steps = List<String>.generate(totalSteps, (int i) {
       if (i < currentStep) return '●';
       if (i == currentStep) return '◉';
       return '○';
@@ -38,17 +38,17 @@ class WizardPrompt {
     String title,
     List<WizardStep> steps,
   ) async {
-    final results = <String, dynamic>{};
+    final Map<String, dynamic> results = <String, dynamic>{};
 
     DisplayPrompt.printBanner(title);
 
     for (int i = 0; i < steps.length; i++) {
       printStepIndicator(i, steps.length, steps[i].name);
 
-      final result = await steps[i].execute(results);
+      final dynamic result = await steps[i].execute(results);
       if (result == null && steps[i].required) {
         warn('Step cancelled. Aborting wizard.');
-        return {};
+        return <String, dynamic>{};
       }
       results[steps[i].key] = result;
     }

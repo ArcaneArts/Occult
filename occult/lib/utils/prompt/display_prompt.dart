@@ -10,8 +10,8 @@ class DisplayPrompt {
       maxContentLen = subtitle.length;
     }
     // Inner width includes space padding on each side
-    final innerWidth = (maxContentLen + 4).clamp(38, 78);
-    final line = '\u2550' * innerWidth;
+    final int innerWidth = (maxContentLen + 4).clamp(38, 78);
+    final String line = '\u2550' * innerWidth;
 
     print('');
     print('\u2554$line\u2557');
@@ -25,10 +25,10 @@ class DisplayPrompt {
 
   static void _printBannerLine(String text, int innerWidth) {
     // Content width is innerWidth minus 2 for space padding
-    final contentWidth = innerWidth - 2;
-    final leftPad = (contentWidth - text.length) ~/ 2;
-    final rightPad = contentWidth - text.length - leftPad;
-    final content = ' ' * leftPad + text + ' ' * rightPad;
+    final int contentWidth = innerWidth - 2;
+    final int leftPad = (contentWidth - text.length) ~/ 2;
+    final int rightPad = contentWidth - text.length - leftPad;
+    final String content = ' ' * leftPad + text + ' ' * rightPad;
     print('\u2551 $content \u2551');
   }
 
@@ -36,7 +36,7 @@ class DisplayPrompt {
   static void printDivider({String? title, int width = 60}) {
     print('');
     if (title != null) {
-      final padding = (width - title.length - 2) ~/ 2;
+      final int padding = (width - title.length - 2) ~/ 2;
       print('${'\u2500' * padding} $title ${'\u2500' * padding}');
     } else {
       print('\u2500' * width);
@@ -51,21 +51,21 @@ class DisplayPrompt {
   }) {
     // Calculate width based on longest content
     int maxContentLen = title.length;
-    for (final entry in config.entries) {
-      final lineLen = '${entry.key}: ${entry.value}'.length;
+    for (final MapEntry<String, String> entry in config.entries) {
+      final int lineLen = '${entry.key}: ${entry.value}'.length;
       if (lineLen > maxContentLen) maxContentLen = lineLen;
     }
     // Box structure: │ content │ = content + 4 chars for "│ " and " │"
     // Line width = content width + 2 for the spaces inside borders
-    final innerWidth = (maxContentLen + 2).clamp(38, 78);
-    final line = '\u2500' * innerWidth;
+    final int innerWidth = (maxContentLen + 2).clamp(38, 78);
+    final String line = '\u2500' * innerWidth;
 
     print('');
     print('\u256d$line\u256e');
     _printBoxLine(title, innerWidth, center: true);
     print('\u251c$line\u2524');
 
-    for (final entry in config.entries) {
+    for (final MapEntry<String, String> entry in config.entries) {
       _printBoxLine('${entry.key}: ${entry.value}', innerWidth);
     }
 
@@ -75,11 +75,11 @@ class DisplayPrompt {
   static void _printBoxLine(String text, int innerWidth, {bool center = false}) {
     // innerWidth is the width between the │ chars (includes the space padding)
     // So actual content area is innerWidth - 2 for the spaces
-    final contentWidth = innerWidth - 2;
+    final int contentWidth = innerWidth - 2;
     String content;
     if (center) {
-      final leftPad = (contentWidth - text.length) ~/ 2;
-      final rightPad = contentWidth - text.length - leftPad;
+      final int leftPad = (contentWidth - text.length) ~/ 2;
+      final int rightPad = contentWidth - text.length - leftPad;
       content = ' ' * leftPad + text + ' ' * rightPad;
     } else {
       content = text.length > contentWidth
@@ -91,7 +91,7 @@ class DisplayPrompt {
 
   /// Print a list of items with bullets
   static void printList(List<String> items, {String bullet = '•'}) {
-    for (final item in items) {
+    for (final String item in items) {
       print('  $bullet $item');
     }
   }

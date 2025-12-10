@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import '../models/tool_status.dart';
-import '../utils/process_runner.dart';
+import '../utils/process_runner.dart' show ProcessResult, ProcessRunner;
 import '../utils/user_prompt.dart';
 
 /// Service for checking CLI tool availability
@@ -12,7 +12,7 @@ class ToolChecker {
 
   /// Check if Flutter is installed and get version
   Future<ToolStatus> checkFlutter() async {
-    final exists = await _runner.commandExists('flutter');
+    final bool exists = await _runner.commandExists('flutter');
     if (!exists) {
       return ToolStatus.missing(
         'Flutter',
@@ -21,7 +21,7 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion('flutter');
+    final String? version = await _runner.getCommandVersion('flutter');
     return ToolStatus.installed(
       'Flutter',
       version ?? 'unknown',
@@ -31,7 +31,7 @@ class ToolChecker {
 
   /// Check if Dart is installed and get version
   Future<ToolStatus> checkDart() async {
-    final exists = await _runner.commandExists('dart');
+    final bool exists = await _runner.commandExists('dart');
     if (!exists) {
       return ToolStatus.missing(
         'Dart',
@@ -40,13 +40,13 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion('dart');
+    final String? version = await _runner.getCommandVersion('dart');
     return ToolStatus.installed('Dart', version ?? 'unknown', isRequired: true);
   }
 
   /// Check if Firebase CLI is installed
   Future<ToolStatus> checkFirebase() async {
-    final exists = await _runner.commandExists('firebase');
+    final bool exists = await _runner.commandExists('firebase');
     if (!exists) {
       return ToolStatus.missing(
         'Firebase CLI',
@@ -55,7 +55,7 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion('firebase');
+    final String? version = await _runner.getCommandVersion('firebase');
     return ToolStatus.installed(
       'Firebase CLI',
       version ?? 'unknown',
@@ -65,7 +65,7 @@ class ToolChecker {
 
   /// Check if FlutterFire CLI is installed
   Future<ToolStatus> checkFlutterFire() async {
-    final exists = await _runner.commandExists('flutterfire');
+    final bool exists = await _runner.commandExists('flutterfire');
     if (!exists) {
       return ToolStatus.missing(
         'FlutterFire CLI',
@@ -74,7 +74,7 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion('flutterfire');
+    final String? version = await _runner.getCommandVersion('flutterfire');
     return ToolStatus.installed(
       'FlutterFire CLI',
       version ?? 'unknown',
@@ -84,7 +84,7 @@ class ToolChecker {
 
   /// Check if gcloud is installed
   Future<ToolStatus> checkGcloud() async {
-    final exists = await _runner.commandExists('gcloud');
+    final bool exists = await _runner.commandExists('gcloud');
     if (!exists) {
       return ToolStatus.missing(
         'Google Cloud SDK',
@@ -93,12 +93,12 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion(
+    final String? version = await _runner.getCommandVersion(
       'gcloud',
-      versionArgs: ['--version'],
+      versionArgs: <String>['--version'],
     );
     // Extract just the first line with version info
-    final versionLine = version?.split('\n').first ?? 'unknown';
+    final String versionLine = version?.split('\n').first ?? 'unknown';
     return ToolStatus.installed(
       'Google Cloud SDK',
       versionLine,
@@ -108,7 +108,7 @@ class ToolChecker {
 
   /// Check if Docker is installed
   Future<ToolStatus> checkDocker() async {
-    final exists = await _runner.commandExists('docker');
+    final bool exists = await _runner.commandExists('docker');
     if (!exists) {
       return ToolStatus.missing(
         'Docker',
@@ -117,7 +117,7 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion('docker');
+    final String? version = await _runner.getCommandVersion('docker');
     return ToolStatus.installed(
       'Docker',
       version ?? 'unknown',
@@ -127,7 +127,7 @@ class ToolChecker {
 
   /// Check if npm is installed (needed for Firebase CLI)
   Future<ToolStatus> checkNpm() async {
-    final exists = await _runner.commandExists('npm');
+    final bool exists = await _runner.commandExists('npm');
     if (!exists) {
       return ToolStatus.missing(
         'npm',
@@ -136,7 +136,7 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion('npm');
+    final String? version = await _runner.getCommandVersion('npm');
     return ToolStatus.installed('npm', version ?? 'unknown', isRequired: false);
   }
 
@@ -151,7 +151,7 @@ class ToolChecker {
       );
     }
 
-    final exists = await _runner.commandExists('pod');
+    final bool exists = await _runner.commandExists('pod');
     if (!exists) {
       return ToolStatus.missing(
         'CocoaPods',
@@ -160,7 +160,7 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion('pod');
+    final String? version = await _runner.getCommandVersion('pod');
     return ToolStatus.installed(
       'CocoaPods',
       version ?? 'unknown',
@@ -179,7 +179,7 @@ class ToolChecker {
       );
     }
 
-    final exists = await _runner.commandExists('brew');
+    final bool exists = await _runner.commandExists('brew');
     if (!exists) {
       return ToolStatus.missing(
         'Homebrew',
@@ -188,7 +188,7 @@ class ToolChecker {
       );
     }
 
-    final version = await _runner.getCommandVersion('brew');
+    final String? version = await _runner.getCommandVersion('brew');
     return ToolStatus.installed(
       'Homebrew',
       version ?? 'unknown',
@@ -201,7 +201,7 @@ class ToolChecker {
     return await UserPrompt.withSpinner(
       'Checking required tools...',
       () async {
-        final tools = await Future.wait([checkFlutter(), checkDart()]);
+        final List<ToolStatus> tools = await Future.wait(<Future<ToolStatus>>[checkFlutter(), checkDart()]);
         return ToolCheckResult(tools: tools);
       },
       doneMessage: '✓ Tool check complete',
@@ -210,7 +210,7 @@ class ToolChecker {
 
   /// Check all tools (required and optional) with progress
   Future<ToolCheckResult> checkAll() async {
-    final toolCheckers = [
+    final List<(String, Future<ToolStatus> Function())> toolCheckers = <(String, Future<ToolStatus> Function())>[
       ('Flutter', checkFlutter),
       ('Dart', checkDart),
       ('Firebase CLI', checkFirebase),
@@ -222,11 +222,11 @@ class ToolChecker {
       ('Homebrew', checkHomebrew),
     ];
 
-    final tools = <ToolStatus>[];
+    final List<ToolStatus> tools = <ToolStatus>[];
 
     // Show progress for each tool check
     for (int i = 0; i < toolCheckers.length; i++) {
-      final (name, checker) = toolCheckers[i];
+      final (String name, Future<ToolStatus> Function() checker) = toolCheckers[i];
       UserPrompt.showProgress(i, toolCheckers.length, 'Checking $name...');
       tools.add(await checker());
     }
@@ -244,7 +244,7 @@ class ToolChecker {
     return await UserPrompt.withSpinner(
       'Checking Firebase tools...',
       () async {
-        final tools = await Future.wait([
+        final List<ToolStatus> tools = await Future.wait(<Future<ToolStatus>>[
           checkFirebase(),
           checkFlutterFire(),
           checkNpm(),
@@ -260,7 +260,7 @@ class ToolChecker {
     return await UserPrompt.withSpinner(
       'Checking server deployment tools...',
       () async {
-        final tools = await Future.wait([checkDocker(), checkGcloud()]);
+        final List<ToolStatus> tools = await Future.wait(<Future<ToolStatus>>[checkDocker(), checkGcloud()]);
         return ToolCheckResult(tools: tools);
       },
       doneMessage: '✓ Server tools checked',
@@ -272,7 +272,7 @@ class ToolChecker {
     return await UserPrompt.withSpinner(
       'Running flutter doctor (this may take a moment)...',
       () async {
-        final result = await _runner.run('flutter', ['doctor', '-v']);
+        final ProcessResult result = await _runner.run('flutter', <String>['doctor', '-v']);
         return result.stdout;
       },
       doneMessage: '✓ Flutter doctor complete',

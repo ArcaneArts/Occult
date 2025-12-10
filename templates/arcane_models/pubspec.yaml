@@ -19,5 +19,12 @@ dev_dependencies:
   lints: ^6.0.0
 
 scripts:
-  build_runner: flutter pub run build_runner build --delete-conflicting-outputs
+  # Occult Commands
+  check_tools: occult check all
+
+  # Code Generation
+  build_runner: dart run build_runner build --delete-conflicting-outputs
+  build_runner_watch: dart run build_runner watch --delete-conflicting-outputs
+
+  # Firebase Rules
   deploy_rules: cd .. && firebase use FIREBASE_PROJECT_ID && firebase deploy --only firestore && cd arcane_app

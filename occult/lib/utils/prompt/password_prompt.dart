@@ -8,15 +8,17 @@ class PasswordPrompt {
     bool confirm = false,
     String? confirmPrompt,
   }) async {
-    return Password(
+    final String result = Password(
       prompt: prompt,
       confirmation: confirm,
       confirmPrompt: confirmPrompt ?? 'Confirm password',
     ).interact();
+    return result;
   }
 
   /// Ask for API key or secret (hidden input)
   static Future<String> askSecret(String prompt) async {
-    return Password(prompt: prompt, confirmation: false).interact();
+    final String result = Password(prompt: prompt, confirmation: false).interact();
+    return result;
   }
 }

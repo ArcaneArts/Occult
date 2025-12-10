@@ -7,11 +7,12 @@ class ConfirmPrompt {
     String question, {
     bool defaultValue = true,
   }) async {
-    return Confirm(
+    final bool result = Confirm(
       prompt: question,
       defaultValue: defaultValue,
       waitForNewLine: true,
     ).interact();
+    return result;
   }
 
   /// Ask for confirmation with custom yes/no labels
@@ -21,9 +22,9 @@ class ConfirmPrompt {
     String yesLabel = 'Yes',
     String noLabel = 'No',
   }) async {
-    final choice = Select(
+    final int choice = Select(
       prompt: question,
-      options: [yesLabel, noLabel],
+      options: <String>[yesLabel, noLabel],
       initialIndex: defaultValue ? 0 : 1,
     ).interact();
     return choice == 0;

@@ -4,7 +4,7 @@ import 'package:fast_log/fast_log.dart';
 import 'package:path/path.dart' as p;
 
 import '../models/setup_config.dart';
-import '../utils/process_runner.dart';
+import '../utils/process_runner.dart' show ProcessResult, ProcessRunner;
 
 /// Service for server setup and deployment
 class ServerSetup {
@@ -23,7 +23,7 @@ class ServerSetup {
 
     info('Generating Dockerfile...');
 
-    final content =
+    final String content =
         '''
 # Production Dockerfile for ${config.serverPackageName}
 # Multi-stage build for minimal image size
@@ -85,7 +85,7 @@ CMD ["./\$SERVER_NAME"]
 '''
             .replaceAll('\$SERVER_NAME', config.serverPackageName);
 
-    final file = File(p.join(serverPath, 'Dockerfile'));
+    final File file = File(p.join(serverPath, 'Dockerfile'));
     await file.writeAsString(content);
     success('Generated: ${config.serverPackageName}/Dockerfile');
   }
@@ -96,7 +96,7 @@ CMD ["./\$SERVER_NAME"]
 
     info('Generating Dockerfile-dev...');
 
-    final content =
+    final String content =
         '''
 # Development Dockerfile for ${config.serverPackageName}
 # Includes Flutter SDK for debugging
@@ -144,8 +144,8 @@ EXPOSE 8080
 CMD ["flutter", "run", "-d", "linux"]
 ''';
 
-    final file = File(p.join(serverPath, 'Dockerfile-dev'));
-    await file.writeAsString(content);
+    final File file2 = File(p.join(serverPath, 'Dockerfile-dev'));
+    await file2.writeAsString(content);
     success('Generated: ${config.serverPackageName}/Dockerfile-dev');
   }
 
@@ -159,7 +159,7 @@ CMD ["flutter", "run", "-d", "linux"]
 
     info('Generating deploy script...');
 
-    final content =
+    final String content =
         '''
 #!/bin/bash
 # Deployment script for ${config.serverPackageName}
@@ -194,11 +194,11 @@ echo "Deployment complete!"
 echo "Service URL: https://\$SERVICE_NAME-\$PROJECT_ID.\$REGION.run.app"
 ''';
 
-    final file = File(p.join(serverPath, 'script_deploy.sh'));
-    await file.writeAsString(content);
+    final File file3 = File(p.join(serverPath, 'script_deploy.sh'));
+    await file3.writeAsString(content);
 
     // Make executable
-    await _runner.run('chmod', ['+x', file.path]);
+    await _runner.run('chmod', <String>['+x', file3.path]);
 
     success('Generated: ${config.serverPackageName}/script_deploy.sh');
   }
@@ -211,7 +211,7 @@ echo "Service URL: https://\$SERVICE_NAME-\$PROJECT_ID.\$REGION.run.app"
       return;
     }
 
-    final sourceFile = File(config.serviceAccountKeyPath!);
+    final File sourceFile = File(config.serviceAccountKeyPath!);
     if (!sourceFile.existsSync()) {
       error('Service account key not found: ${config.serviceAccountKeyPath}');
       return;
@@ -219,13 +219,13 @@ echo "Service URL: https://\$SERVICE_NAME-\$PROJECT_ID.\$REGION.run.app"
 
     info('Copying service account key...');
 
-    final destPath = p.join(serverPath, 'service-account.json');
+    final String destPath = p.join(serverPath, 'service-account.json');
     await sourceFile.copy(destPath);
 
     // Add to gitignore
-    final gitignore = File(p.join(serverPath, '.gitignore'));
+    final File gitignore = File(p.join(serverPath, '.gitignore'));
     if (gitignore.existsSync()) {
-      var content = await gitignore.readAsString();
+      String content = await gitignore.readAsString();
       if (!content.contains('*.json')) {
         content += '\n# Service account keys\n*.json\n';
         await gitignore.writeAsString(content);
@@ -243,15 +243,15 @@ echo "Service URL: https://\$SERVICE_NAME-\$PROJECT_ID.\$REGION.run.app"
 
     // Copy models to server directory for Docker context
     if (config.createModels) {
-      final modelsPath = p.join(config.outputDir, config.modelsPackageName);
-      final targetPath = p.join(serverPath, config.modelsPackageName);
+      final String modelsPath = p.join(config.outputDir, config.modelsPackageName);
+      final String targetPath = p.join(serverPath, config.modelsPackageName);
 
-      await _runner.run('cp', ['-r', modelsPath, targetPath]);
+      await _runner.run('cp', <String>['-r', modelsPath, targetPath]);
     }
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'docker',
-      [
+      <String>[
         'build',
         '--platform',
         'linux/amd64',
@@ -272,7 +272,7 @@ echo "Service URL: https://\$SERVICE_NAME-\$PROJECT_ID.\$REGION.run.app"
 
     info('Running server in Docker (development)...');
 
-    final result = await _runner.runStreaming('docker', [
+    final int result = await _runner.runStreaming('docker', <String>[
       'run',
       '-p',
       '8080:8080',

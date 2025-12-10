@@ -9,13 +9,13 @@ class SpinnerPrompt {
     String? doneMessage,
     String? icon,
   }) async {
-    final spinner = Spinner(
+    final SpinnerState spinner = Spinner(
       icon: icon ?? '⠋',
-      rightPrompt: (done) => done ? (doneMessage ?? '✓ Done!') : message,
+      rightPrompt: (bool done) => done ? (doneMessage ?? '✓ Done!') : message,
     ).interact();
 
     try {
-      final result = await action();
+      final T result = await action();
       spinner.done();
       return result;
     } catch (e) {

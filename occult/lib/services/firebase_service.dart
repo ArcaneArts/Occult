@@ -2,7 +2,7 @@ import 'package:fast_log/fast_log.dart';
 import 'package:path/path.dart' as p;
 
 import '../models/setup_config.dart';
-import '../utils/process_runner.dart';
+import '../utils/process_runner.dart' show ProcessResult, ProcessRunner;
 
 /// Service for Firebase operations
 class FirebaseService {
@@ -16,7 +16,7 @@ class FirebaseService {
   Future<bool> login() async {
     info('Logging in to Firebase...');
 
-    final result = await _runner.runStreaming('firebase', ['login']);
+    final int result = await _runner.runStreaming('firebase', <String>['login']);
     return result == 0;
   }
 
@@ -24,7 +24,7 @@ class FirebaseService {
   Future<bool> gcloudLogin() async {
     info('Logging in to Google Cloud...');
 
-    final result = await _runner.runStreaming('gcloud', ['auth', 'login']);
+    final int result = await _runner.runStreaming('gcloud', <String>['auth', 'login']);
     return result == 0;
   }
 
@@ -35,19 +35,19 @@ class FirebaseService {
       return false;
     }
 
-    final projectPath = p.join(config.outputDir, config.appName);
+    final String projectPath = p.join(config.outputDir, config.appName);
 
     info('Configuring FlutterFire...');
 
-    final args = ['configure', '--project', config.firebaseProjectId!];
+    final List<String> args = <String>['configure', '--project', config.firebaseProjectId!];
 
     // Add platforms based on template
-    for (final platform in config.platforms) {
+    for (final String platform in config.platforms) {
       args.add('--platforms');
       args.add(platform);
     }
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'flutterfire',
       args,
       workingDirectory: projectPath,
@@ -61,9 +61,9 @@ class FirebaseService {
   Future<bool> deployFirestore() async {
     info('Deploying Firestore rules...');
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'firebase',
-      ['deploy', '--only', 'firestore:rules,firestore:indexes'],
+      <String>['deploy', '--only', 'firestore:rules,firestore:indexes'],
       workingDirectory: config.outputDir,
       operationName: 'Deploy Firestore',
     );
@@ -75,9 +75,9 @@ class FirebaseService {
   Future<bool> deployStorage() async {
     info('Deploying Storage rules...');
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'firebase',
-      ['deploy', '--only', 'storage'],
+      <String>['deploy', '--only', 'storage'],
       workingDirectory: config.outputDir,
       operationName: 'Deploy Storage',
     );
@@ -87,13 +87,13 @@ class FirebaseService {
 
   /// Build web app
   Future<bool> buildWeb() async {
-    final projectPath = p.join(config.outputDir, config.appName);
+    final String projectPath = p.join(config.outputDir, config.appName);
 
     info('Building web app...');
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'flutter',
-      ['build', 'web', '--release'],
+      <String>['build', 'web', '--release'],
       workingDirectory: projectPath,
       operationName: 'Flutter build web',
     );
@@ -105,9 +105,9 @@ class FirebaseService {
   Future<bool> deployHostingRelease() async {
     info('Deploying to Firebase Hosting (release)...');
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'firebase',
-      ['deploy', '--only', 'hosting:release'],
+      <String>['deploy', '--only', 'hosting:release'],
       workingDirectory: config.outputDir,
       operationName: 'Deploy Hosting (release)',
     );
@@ -119,9 +119,9 @@ class FirebaseService {
   Future<bool> deployHostingBeta() async {
     info('Deploying to Firebase Hosting (beta)...');
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'firebase',
-      ['deploy', '--only', 'hosting:beta'],
+      <String>['deploy', '--only', 'hosting:beta'],
       workingDirectory: config.outputDir,
       operationName: 'Deploy Hosting (beta)',
     );
@@ -165,7 +165,7 @@ class FirebaseService {
     info('Enabling Google Cloud APIs...');
 
     // Enable Artifact Registry
-    var result = await _runner.run('gcloud', [
+    ProcessResult result = await _runner.run('gcloud', <String>[
       'services',
       'enable',
       'artifactregistry.googleapis.com',
@@ -178,7 +178,7 @@ class FirebaseService {
     }
 
     // Enable Cloud Run
-    result = await _runner.run('gcloud', [
+    result = await _runner.run('gcloud', <String>[
       'services',
       'enable',
       'run.googleapis.com',

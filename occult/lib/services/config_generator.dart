@@ -20,7 +20,7 @@ class ConfigGenerator {
 
     info('Generating firebase.json...');
 
-    final content =
+    final String content =
         '''
 {
   "firestore": {
@@ -65,7 +65,7 @@ class ConfigGenerator {
 }
 ''';
 
-    final file = File(p.join(config.outputDir, 'firebase.json'));
+    final File file = File(p.join(config.outputDir, 'firebase.json'));
     await file.writeAsString(content);
     success('Generated: firebase.json');
   }
@@ -79,7 +79,7 @@ class ConfigGenerator {
 
     info('Generating .firebaserc...');
 
-    final content =
+    final String content =
         '''
 {
   "projects": {
@@ -101,7 +101,7 @@ class ConfigGenerator {
 }
 ''';
 
-    final file = File(p.join(config.outputDir, '.firebaserc'));
+    final File file = File(p.join(config.outputDir, '.firebaserc'));
     await file.writeAsString(content);
     success('Generated: .firebaserc');
   }
@@ -110,7 +110,7 @@ class ConfigGenerator {
   Future<void> generateFirestoreRules() async {
     info('Generating Firestore rules...');
 
-    final content = '''
+    final String content = '''
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -162,12 +162,12 @@ service cloud.firestore {
 }
 ''';
 
-    final configDir = Directory(p.join(config.outputDir, 'config'));
+    final Directory configDir = Directory(p.join(config.outputDir, 'config'));
     if (!configDir.existsSync()) {
       await configDir.create(recursive: true);
     }
 
-    final file = File(p.join(configDir.path, 'firestore.rules'));
+    final File file = File(p.join(configDir.path, 'firestore.rules'));
     await file.writeAsString(content);
     success('Generated: config/firestore.rules');
   }
@@ -176,20 +176,20 @@ service cloud.firestore {
   Future<void> generateFirestoreIndexes() async {
     info('Generating Firestore indexes...');
 
-    final content = '''
+    final String content = '''
 {
   "indexes": [],
   "fieldOverrides": []
 }
 ''';
 
-    final configDir = Directory(p.join(config.outputDir, 'config'));
-    if (!configDir.existsSync()) {
-      await configDir.create(recursive: true);
+    final Directory configDir2 = Directory(p.join(config.outputDir, 'config'));
+    if (!configDir2.existsSync()) {
+      await configDir2.create(recursive: true);
     }
 
-    final file = File(p.join(configDir.path, 'firestore.indexes.json'));
-    await file.writeAsString(content);
+    final File file2 = File(p.join(configDir2.path, 'firestore.indexes.json'));
+    await file2.writeAsString(content);
     success('Generated: config/firestore.indexes.json');
   }
 
@@ -197,7 +197,7 @@ service cloud.firestore {
   Future<void> generateStorageRules() async {
     info('Generating Storage rules...');
 
-    final content = '''
+    final String content = '''
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
@@ -222,13 +222,13 @@ service firebase.storage {
 }
 ''';
 
-    final configDir = Directory(p.join(config.outputDir, 'config'));
-    if (!configDir.existsSync()) {
-      await configDir.create(recursive: true);
+    final Directory configDir3 = Directory(p.join(config.outputDir, 'config'));
+    if (!configDir3.existsSync()) {
+      await configDir3.create(recursive: true);
     }
 
-    final file = File(p.join(configDir.path, 'storage.rules'));
-    await file.writeAsString(content);
+    final File file3 = File(p.join(configDir3.path, 'storage.rules'));
+    await file3.writeAsString(content);
     success('Generated: config/storage.rules');
   }
 

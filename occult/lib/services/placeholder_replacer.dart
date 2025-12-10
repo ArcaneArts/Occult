@@ -15,7 +15,7 @@ class PlaceholderReplacer {
   PlaceholderReplacer(this.config);
 
   /// File extensions that should have placeholder replacement applied
-  static const textFileExtensions = [
+  static const List<String> textFileExtensions = <String>[
     '.dart',
     '.yaml',
     '.yml',
@@ -47,14 +47,14 @@ class PlaceholderReplacer {
 
   /// Check if a file should have placeholders replaced
   bool shouldProcessFile(String path) {
-    final ext = p.extension(path).toLowerCase();
+    final String ext = p.extension(path).toLowerCase();
     return textFileExtensions.contains(ext);
   }
 
   /// Replace all placeholders in a string
   /// Templates use real working names that get replaced with user's names
   String replaceInContent(String content) {
-    var result = content;
+    String result = content;
 
     // 1. Replace class names first (PascalCase patterns) to avoid double replacement
     // ArcaneServer -> MyAppServer
@@ -130,7 +130,7 @@ class PlaceholderReplacer {
 
   /// Get the new filename after placeholder replacement
   String replaceInFilename(String filename) {
-    var result = filename;
+    String result = filename;
 
     // arcane_models.dart -> my_app_models.dart
     result = result.replaceAll('arcane_models', config.modelsPackageName);
@@ -146,12 +146,12 @@ class PlaceholderReplacer {
 
   /// Process a single file - replace placeholders in content and rename if needed
   Future<void> processFile(File file) async {
-    final path = file.path;
+    final String path = file.path;
 
     if (shouldProcessFile(path)) {
       // Read and replace content
-      var content = await file.readAsString();
-      final newContent = replaceInContent(content);
+      String content = await file.readAsString();
+      final String newContent = replaceInContent(content);
 
       if (content != newContent) {
         await file.writeAsString(newContent);
@@ -160,11 +160,11 @@ class PlaceholderReplacer {
     }
 
     // Check if filename needs replacing
-    final filename = p.basename(path);
-    final newFilename = replaceInFilename(filename);
+    final String filename = p.basename(path);
+    final String newFilename = replaceInFilename(filename);
 
     if (filename != newFilename) {
-      final newPath = p.join(p.dirname(path), newFilename);
+      final String newPath = p.join(p.dirname(path), newFilename);
       await file.rename(newPath);
       verbose('  Renamed: $filename -> $newFilename');
     }
@@ -174,16 +174,16 @@ class PlaceholderReplacer {
   Future<void> processDirectory(Directory dir) async {
     info('Processing placeholders in: ${dir.path}');
 
-    await for (final entity in dir.list(recursive: true)) {
+    await for (final FileSystemEntity entity in dir.list(recursive: true)) {
       if (entity is File) {
         await processFile(entity);
       } else if (entity is Directory) {
         // Check if directory name needs replacing
-        final dirName = p.basename(entity.path);
-        final newDirName = replaceInFilename(dirName);
+        final String dirName = p.basename(entity.path);
+        final String newDirName = replaceInFilename(dirName);
 
         if (dirName != newDirName) {
-          final newPath = p.join(p.dirname(entity.path), newDirName);
+          final String newPath = p.join(p.dirname(entity.path), newDirName);
           await entity.rename(newPath);
           verbose('  Renamed directory: $dirName -> $newDirName');
         }
@@ -196,13 +196,13 @@ class PlaceholderReplacer {
   Future<void> processConditionalImports(File file) async {
     if (!file.existsSync()) return;
 
-    var content = await file.readAsString();
-    var modified = false;
+    String content = await file.readAsString();
+    bool modified = false;
 
     // Handle Firebase imports
     if (config.useFirebase) {
-      final firebasePattern = RegExp(r'// FIREBASE_IMPORT: (.+)');
-      content = content.replaceAllMapped(firebasePattern, (match) {
+      final RegExp firebasePattern = RegExp(r'// FIREBASE_IMPORT: (.+)');
+      content = content.replaceAllMapped(firebasePattern, (Match match) {
         modified = true;
         return match.group(1)!;
       });
@@ -210,8 +210,8 @@ class PlaceholderReplacer {
 
     // Handle server command imports
     if (config.createServer) {
-      final serverPattern = RegExp(r'// SERVER_COMMAND_IMPORT: (.+)');
-      content = content.replaceAllMapped(serverPattern, (match) {
+      final RegExp serverPattern = RegExp(r'// SERVER_COMMAND_IMPORT: (.+)');
+      content = content.replaceAllMapped(serverPattern, (Match match) {
         modified = true;
         return match.group(1)!;
       });
@@ -219,8 +219,8 @@ class PlaceholderReplacer {
 
     // Handle models imports
     if (config.createModels) {
-      final modelsPattern = RegExp(r'// MODELS_IMPORT: (.+)');
-      content = content.replaceAllMapped(modelsPattern, (match) {
+      final RegExp modelsPattern = RegExp(r'// MODELS_IMPORT: (.+)');
+      content = content.replaceAllMapped(modelsPattern, (Match match) {
         modified = true;
         return match.group(1)!;
       });
@@ -236,7 +236,7 @@ class PlaceholderReplacer {
   Future<void> updatePubspec(File pubspecFile, String packageName) async {
     if (!pubspecFile.existsSync()) return;
 
-    var content = await pubspecFile.readAsString();
+    String content = await pubspecFile.readAsString();
 
     // Update package name
     content = content.replaceFirst(
@@ -256,7 +256,7 @@ class PlaceholderReplacer {
     // Handle Firebase dependencies
     if (config.useFirebase) {
       // Uncomment Firebase packages
-      final firebasePackages = [
+      final List<String> firebasePackages = <String>[
         'firebase_core',
         'firebase_auth',
         'cloud_firestore',
@@ -265,7 +265,7 @@ class PlaceholderReplacer {
         'arcane_auth',
         'fire_crud',
       ];
-      for (final pkg in firebasePackages) {
+      for (final String pkg in firebasePackages) {
         content = content.replaceAll(RegExp(r'#\s*' + pkg + r':'), '$pkg:');
       }
     }
@@ -278,7 +278,7 @@ class PlaceholderReplacer {
   Future<void> addModelsDependency(File pubspecFile) async {
     if (!pubspecFile.existsSync()) return;
 
-    var content = await pubspecFile.readAsString();
+    String content = await pubspecFile.readAsString();
 
     // Check if dependency already exists
     if (content.contains('${config.modelsPackageName}:')) {
@@ -286,12 +286,12 @@ class PlaceholderReplacer {
     }
 
     // Find the dependencies section and add models dependency
-    final dependenciesPattern = RegExp(r'^dependencies:\s*$', multiLine: true);
-    final match = dependenciesPattern.firstMatch(content);
+    final RegExp dependenciesPattern = RegExp(r'^dependencies:\s*$', multiLine: true);
+    final RegExpMatch? match = dependenciesPattern.firstMatch(content);
 
     if (match != null) {
-      final insertPosition = match.end;
-      final modelsDep =
+      final int insertPosition = match.end;
+      final String modelsDep =
           '''
 
   ${config.modelsPackageName}:

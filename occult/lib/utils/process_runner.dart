@@ -1,3 +1,4 @@
+import 'dart:io' as io;
 import 'dart:io';
 
 import 'package:fast_log/fast_log.dart';
@@ -58,7 +59,7 @@ class ProcessRunner {
       }
     }
 
-    final result = await Process.run(
+    final io.ProcessResult result = await Process.run(
       executable,
       arguments,
       workingDirectory: workingDirectory,
@@ -84,12 +85,12 @@ class ProcessRunner {
     String? operationName,
     bool interactive = true,
   }) async {
-    final opName = operationName ?? '$executable ${arguments.join(' ')}';
+    final String opName = operationName ?? '$executable ${arguments.join(' ')}';
     int attempt = 0;
 
     while (true) {
       attempt++;
-      final result = await run(
+      final ProcessResult result = await run(
         executable,
         arguments,
         workingDirectory: workingDirectory,
@@ -120,7 +121,7 @@ class ProcessRunner {
         print(result.stderr);
       }
 
-      final choice = await UserPrompt.askRetryChoice(opName);
+      final RetryChoice choice = await UserPrompt.askRetryChoice(opName);
       switch (choice) {
         case RetryChoice.retry:
           attempt = 0; // Reset retry counter
@@ -144,7 +145,7 @@ class ProcessRunner {
       verbose('Running (streaming): $executable ${arguments.join(' ')}');
     }
 
-    final process = await Process.start(
+    final Process process = await Process.start(
       executable,
       arguments,
       workingDirectory: workingDirectory,
@@ -153,8 +154,8 @@ class ProcessRunner {
     );
 
     // Stream stdout and stderr
-    process.stdout.listen((data) => stdout.add(data));
-    process.stderr.listen((data) => stderr.add(data));
+    process.stdout.listen((List<int> data) => stdout.add(data));
+    process.stderr.listen((List<int> data) => stderr.add(data));
 
     return await process.exitCode;
   }
@@ -162,7 +163,7 @@ class ProcessRunner {
   /// Check if a command exists on the system
   Future<bool> commandExists(String command) async {
     try {
-      final result = await run(Platform.isWindows ? 'where' : 'which', [
+      final ProcessResult result = await run(Platform.isWindows ? 'where' : 'which', <String>[
         command,
       ]);
       return result.success;
@@ -174,10 +175,10 @@ class ProcessRunner {
   /// Get the version of a command
   Future<String?> getCommandVersion(
     String command, {
-    List<String> versionArgs = const ['--version'],
+    List<String> versionArgs = const <String>['--version'],
   }) async {
     try {
-      final result = await run(command, versionArgs);
+      final ProcessResult result = await run(command, versionArgs);
       if (result.success) {
         return result.stdout.trim().split('\n').first;
       }

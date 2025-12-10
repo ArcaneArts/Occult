@@ -1,6 +1,6 @@
 name: occult
 description: "Arcane Template System - Create production-ready Flutter and Dart projects CLI & GUI"
-version: 2.0.0
+version: 2.0.0-dev2
 homepage: https://github.com/ArcaneArts/occult
 repository: https://github.com/ArcaneArts/occult
 issue_tracker: https://github.com/ArcaneArts/occult/issues

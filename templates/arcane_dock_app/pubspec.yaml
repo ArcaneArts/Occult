@@ -75,6 +75,10 @@ flutter_launcher_icons:
     image_path: "assets/icon.png"
 
 scripts:
+  # Occult Commands
+  deploy: occult deploy all
+  check_tools: occult check all
+
   # Platform Setup
   pod_install_macos: cd macos && rm -f Podfile.lock && pod install --repo-update && cd ..
 

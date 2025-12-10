@@ -119,7 +119,7 @@ class SetupConfig {
 
   /// Save configuration to file
   Future<void> saveToFile(String path) async {
-    final content =
+    final String content =
         '''
 # Occultist Setup Configuration
 # Generated: ${DateTime.now().toIso8601String()}
@@ -143,25 +143,25 @@ ${serviceAccountKeyPath != null ? 'SERVICE_ACCOUNT_KEY=$serviceAccountKeyPath' :
 
   /// Load configuration from file
   static Future<SetupConfig?> loadFromFile(String path) async {
-    final file = File(path);
+    final File file = File(path);
     if (!file.existsSync()) return null;
 
-    final content = await file.readAsString();
-    final values = <String, String>{};
+    final String content = await file.readAsString();
+    final Map<String, String> values = <String, String>{};
 
-    for (final line in content.split('\n')) {
-      final trimmed = line.trim();
+    for (final String line in content.split('\n')) {
+      final String trimmed = line.trim();
       if (trimmed.isEmpty || trimmed.startsWith('#')) continue;
 
-      final parts = trimmed.split('=');
+      final List<String> parts = trimmed.split('=');
       if (parts.length >= 2) {
         values[parts[0].trim()] = parts.sublist(1).join('=').trim();
       }
     }
 
-    final templateName = values['TEMPLATE_NAME'] ?? 'arcane_template';
-    final template = TemplateType.values.firstWhere(
-      (t) => t.name == templateName,
+    final String templateName = values['TEMPLATE_NAME'] ?? 'arcane_template';
+    final TemplateType template = TemplateType.values.firstWhere(
+      (TemplateType t) => t.name == templateName,
       orElse: () => TemplateType.arcaneTemplate,
     );
 

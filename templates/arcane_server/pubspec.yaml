@@ -50,4 +50,10 @@ flutter:
   uses-material-design: true
 
 scripts:
-  deploy: sh ./script_deploy.sh
+  # Occult Commands
+  deploy: occult deploy server
+  deploy_all: occult deploy all
+  check_tools: occult check server
+
+  # Manual Deployment
+  deploy_manual: sh ./script_deploy.sh

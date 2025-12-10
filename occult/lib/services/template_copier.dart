@@ -25,11 +25,11 @@ class TemplateCopier {
   /// Templates are now in a sibling 'templates/' folder, not embedded in lib/
   String _findTemplatesPath() {
     // Try to find templates relative to the script
-    final scriptPath = Platform.script.toFilePath();
-    final scriptDir = p.dirname(scriptPath);
+    final String scriptPath = Platform.script.toFilePath();
+    final String scriptDir = p.dirname(scriptPath);
 
     // Check various possible locations
-    final possiblePaths = [
+    final List<String> possiblePaths = <String>[
       // When running from pub global activate - templates sibling to package
       p.join(scriptDir, '..', '..', 'templates'),
       // When running locally with dart run from occult/ directory
@@ -42,8 +42,8 @@ class TemplateCopier {
       '/Users/brianfopiano/Developer/RemoteGit/ArcaneArts/Occult/templates',
     ];
 
-    for (final path in possiblePaths) {
-      final normalizedPath = p.normalize(path);
+    for (final String path in possiblePaths) {
+      final String normalizedPath = p.normalize(path);
       if (Directory(normalizedPath).existsSync()) {
         verbose('Found templates at: $normalizedPath');
         return normalizedPath;
@@ -62,10 +62,10 @@ class TemplateCopier {
 
   /// Copy the main app template to the output directory
   Future<void> copyAppTemplate() async {
-    final templateDir = Directory(
+    final Directory templateDir = Directory(
       getTemplatePath(config.template.directoryName),
     );
-    final targetDir = Directory(p.join(config.outputDir, config.appName));
+    final Directory targetDir = Directory(p.join(config.outputDir, config.appName));
 
     if (!templateDir.existsSync()) {
       throw Exception('Template not found: ${templateDir.path}');
@@ -80,7 +80,7 @@ class TemplateCopier {
     await _replacer.processDirectory(targetDir);
 
     // Update pubspec
-    final pubspecFile = File(p.join(targetDir.path, 'pubspec.yaml'));
+    final File pubspecFile = File(p.join(targetDir.path, 'pubspec.yaml'));
     await _replacer.updatePubspec(pubspecFile, config.appName);
 
     // Add models dependency if needed
@@ -95,8 +95,8 @@ class TemplateCopier {
   Future<void> copyModelsTemplate() async {
     if (!config.createModels) return;
 
-    final templateDir = Directory(getTemplatePath('arcane_models'));
-    final targetDir = Directory(
+    final Directory templateDir = Directory(getTemplatePath('arcane_models'));
+    final Directory targetDir = Directory(
       p.join(config.outputDir, config.modelsPackageName),
     );
 
@@ -113,7 +113,7 @@ class TemplateCopier {
     await _replacer.processDirectory(targetDir);
 
     // Update pubspec
-    final pubspecFile = File(p.join(targetDir.path, 'pubspec.yaml'));
+    final File pubspecFile = File(p.join(targetDir.path, 'pubspec.yaml'));
     await _replacer.updatePubspec(pubspecFile, config.modelsPackageName);
 
     success('Models package created at: ${targetDir.path}');
@@ -123,8 +123,8 @@ class TemplateCopier {
   Future<void> copyServerTemplate() async {
     if (!config.createServer) return;
 
-    final templateDir = Directory(getTemplatePath('arcane_server'));
-    final targetDir = Directory(
+    final Directory templateDir = Directory(getTemplatePath('arcane_server'));
+    final Directory targetDir = Directory(
       p.join(config.outputDir, config.serverPackageName),
     );
 
@@ -141,7 +141,7 @@ class TemplateCopier {
     await _replacer.processDirectory(targetDir);
 
     // Update pubspec
-    final pubspecFile = File(p.join(targetDir.path, 'pubspec.yaml'));
+    final File pubspecFile = File(p.join(targetDir.path, 'pubspec.yaml'));
     await _replacer.updatePubspec(pubspecFile, config.serverPackageName);
 
     // Add models dependency if needed
@@ -154,8 +154,8 @@ class TemplateCopier {
 
   /// Copy the references folder
   Future<void> copyReferences() async {
-    final templateDir = Directory(getTemplatePath('references'));
-    final targetDir = Directory(p.join(config.outputDir, 'references'));
+    final Directory templateDir = Directory(getTemplatePath('references'));
+    final Directory targetDir = Directory(p.join(config.outputDir, 'references'));
 
     if (!templateDir.existsSync()) {
       warn('References directory not found, skipping');
@@ -175,21 +175,21 @@ class TemplateCopier {
       await target.create(recursive: true);
     }
 
-    await for (final entity in source.list(recursive: false)) {
-      final targetPath = p.join(target.path, p.basename(entity.path));
+    await for (final FileSystemEntity entity in source.list(recursive: false)) {
+      final String targetPath = p.join(target.path, p.basename(entity.path));
 
       if (entity is Directory) {
         // Skip certain directories
-        final dirName = p.basename(entity.path);
+        final String dirName = p.basename(entity.path);
         if (_shouldSkipDirectory(dirName)) {
           continue;
         }
 
-        final newDirectory = Directory(targetPath);
+        final Directory newDirectory = Directory(targetPath);
         await _copyDirectory(entity, newDirectory);
       } else if (entity is File) {
         // Skip certain files
-        final fileName = p.basename(entity.path);
+        final String fileName = p.basename(entity.path);
         if (_shouldSkipFile(fileName)) {
           continue;
         }
@@ -201,7 +201,7 @@ class TemplateCopier {
 
   /// Check if a directory should be skipped during copy
   bool _shouldSkipDirectory(String dirName) {
-    const skipDirs = [
+    const List<String> skipDirs = <String>[
       '.dart_tool',
       '.idea',
       '.git',
@@ -214,7 +214,7 @@ class TemplateCopier {
 
   /// Check if a file should be skipped during copy
   bool _shouldSkipFile(String fileName) {
-    const skipFiles = [
+    const List<String> skipFiles = <String>[
       '.DS_Store',
       'pubspec.lock',
       '.flutter-plugins',
@@ -232,7 +232,7 @@ class TemplateCopier {
   /// Copy all templates based on config with progress tracking
   Future<void> copyAll() async {
     // Build list of templates to copy
-    final templates = <(String, Future<void> Function())>[
+    final List<(String, Future<void> Function())> templates = <(String, Future<void> Function())>[
       ('Main app', copyAppTemplate),
     ];
 
@@ -245,14 +245,14 @@ class TemplateCopier {
     templates.add(('References', copyReferences));
 
     // Create output directory if needed
-    final outputDir = Directory(config.outputDir);
+    final Directory outputDir = Directory(config.outputDir);
     if (!outputDir.existsSync()) {
       await outputDir.create(recursive: true);
     }
 
     // Copy each template with progress
     for (int i = 0; i < templates.length; i++) {
-      final (name, copier) = templates[i];
+      final (String name, Future<void> Function() copier) = templates[i];
       UserPrompt.showProgress(i, templates.length, 'Copying $name...');
       await copier();
     }
@@ -261,14 +261,14 @@ class TemplateCopier {
 
   /// Get list of files that would be copied (dry run)
   Future<List<String>> getFilesToCopy() async {
-    final files = <String>[];
+    final List<String> files = <String>[];
 
     // Main app
-    final appTemplate = Directory(
+    final Directory appTemplate = Directory(
       getTemplatePath(config.template.directoryName),
     );
     if (appTemplate.existsSync()) {
-      await for (final entity in appTemplate.list(recursive: true)) {
+      await for (final FileSystemEntity entity in appTemplate.list(recursive: true)) {
         if (entity is File) {
           files.add(p.relative(entity.path, from: appTemplate.path));
         }

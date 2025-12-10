@@ -12,11 +12,12 @@ class SortPrompt {
   }) async {
     print('');
     print('  Use ↑↓ to navigate, Shift+↑↓ to reorder, Enter to confirm');
-    return Sort(
+    final List<String> result = Sort(
       prompt: title,
       options: options,
       showOutput: showOutput,
     ).interact();
+    return result;
   }
 
   /// Sort and return the sorted option names (alias for askSort)
@@ -25,7 +26,8 @@ class SortPrompt {
     List<String> options, {
     bool showOutput = true,
   }) async {
-    return askSort(title, options, showOutput: showOutput);
+    final List<String> result = await askSort(title, options, showOutput: showOutput);
+    return result;
   }
 
   /// Ask user to prioritize features/options
@@ -35,6 +37,7 @@ class SortPrompt {
   ) async {
     print('');
     info('Arrange items in order of priority (most important first)');
-    return askSortGetValues(title, items);
+    final List<String> result = await askSortGetValues(title, items);
+    return result;
   }
 }

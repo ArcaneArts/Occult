@@ -64,6 +64,9 @@ executables:
   arcane_cli_app: main
 
 scripts:
+  # Occult Commands
+  check_tools: occult check all
+
   # Run
   run: dart run bin/main.dart
 

@@ -9,11 +9,12 @@ class SelectPrompt {
     int? defaultIndex,
   }) async {
     print('');
-    return Select(
+    final int result = Select(
       prompt: title,
       options: options,
       initialIndex: defaultIndex ?? 0,
     ).interact();
+    return result;
   }
 
   /// Show a menu and return the selected option string
@@ -22,7 +23,7 @@ class SelectPrompt {
     List<String> options, {
     int? defaultIndex,
   }) async {
-    final index = await showMenu(title, options, defaultIndex: defaultIndex);
+    final int index = await showMenu(title, options, defaultIndex: defaultIndex);
     return options[index];
   }
 
@@ -34,17 +35,18 @@ class SelectPrompt {
     List<bool>? defaults,
   }) async {
     // Convert defaultSelected names to boolean list if provided
-    final defaultBools = defaults ??
-        options.map((opt) {
+    final List<bool> defaultBools = defaults ??
+        options.map((String opt) {
           return defaultSelected?.contains(opt) ?? true;
         }).toList();
 
     print('');
-    return MultiSelect(
+    final List<int> result = MultiSelect(
       prompt: title,
       options: options,
       defaults: defaultBools,
     ).interact();
+    return result;
   }
 
   /// Multi-select that returns the selected option names
@@ -53,12 +55,12 @@ class SelectPrompt {
     List<String> options, {
     List<String>? defaultSelected,
   }) async {
-    final indices = await askMultiSelect(
+    final List<int> indices = await askMultiSelect(
       title,
       options,
       defaultSelected: defaultSelected,
     );
-    return indices.map((i) => options[i]).toList();
+    return indices.map((int i) => options[i]).toList();
   }
 
   /// Theme/option selector with descriptions
@@ -69,7 +71,7 @@ class SelectPrompt {
     int initialIndex = 0,
   }) async {
     // Build options with descriptions
-    final options = <String>[];
+    final List<String> options = <String>[];
     for (int i = 0; i < themes.length; i++) {
       if (i < descriptions.length) {
         options.add('${themes[i]} - ${descriptions[i]}');
@@ -78,10 +80,11 @@ class SelectPrompt {
       }
     }
 
-    return Select(
+    final int result = Select(
       prompt: prompt,
       options: options,
       initialIndex: initialIndex,
     ).interact();
+    return result;
   }
 }

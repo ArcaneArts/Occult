@@ -61,20 +61,20 @@ class ToolCheckResult {
 
   ToolCheckResult({required this.tools})
     : allRequiredInstalled = tools
-          .where((t) => t.isRequired && !t.isInstalled)
+          .where((ToolStatus t) => t.isRequired && !t.isInstalled)
           .isEmpty,
       missingRequired = tools
-          .where((t) => t.isRequired && !t.isInstalled)
+          .where((ToolStatus t) => t.isRequired && !t.isInstalled)
           .toList(),
       missingOptional = tools
-          .where((t) => !t.isRequired && !t.isInstalled)
+          .where((ToolStatus t) => !t.isRequired && !t.isInstalled)
           .toList();
 
   /// Get all installed tools
-  List<ToolStatus> get installed => tools.where((t) => t.isInstalled).toList();
+  List<ToolStatus> get installed => tools.where((ToolStatus t) => t.isInstalled).toList();
 
   /// Get all missing tools
-  List<ToolStatus> get missing => tools.where((t) => !t.isInstalled).toList();
+  List<ToolStatus> get missing => tools.where((ToolStatus t) => !t.isInstalled).toList();
 
   /// Print a summary to console
   void printSummary() {
@@ -82,10 +82,10 @@ class ToolCheckResult {
     print('Tool Check Results:');
     print('\u2500' * 60);
 
-    for (final tool in tools) {
-      final status = tool.isInstalled ? '\u2713' : '\u2717';
-      final required = tool.isRequired ? ' (required)' : '';
-      final version = tool.isInstalled ? ' - ${tool.version}' : '';
+    for (final ToolStatus tool in tools) {
+      final String status = tool.isInstalled ? '\u2713' : '\u2717';
+      final String required = tool.isRequired ? ' (required)' : '';
+      final String version = tool.isInstalled ? ' - ${tool.version}' : '';
       print('  [$status] ${tool.name}$required$version');
     }
 
@@ -95,7 +95,7 @@ class ToolCheckResult {
       print('\u2713 All required tools are installed');
     } else {
       print('\u2717 Missing required tools:');
-      for (final tool in missingRequired) {
+      for (final ToolStatus tool in missingRequired) {
         print('  - ${tool.name}');
         if (tool.installInstructions != null) {
           print('    Install: ${tool.installInstructions}');
@@ -106,7 +106,7 @@ class ToolCheckResult {
     if (missingOptional.isNotEmpty) {
       print('');
       print('Optional tools not installed:');
-      for (final tool in missingOptional) {
+      for (final ToolStatus tool in missingOptional) {
         print('  - ${tool.name}');
         if (tool.installInstructions != null) {
           print('    Install: ${tool.installInstructions}');

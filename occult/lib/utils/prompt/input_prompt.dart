@@ -9,16 +9,17 @@ class InputPrompt {
     bool Function(String)? validator,
     String? validationMessage,
   }) async {
-    return Input(
+    final String result = Input(
       prompt: question,
       defaultValue: defaultValue ?? '',
       validator: validator != null
-          ? (value) {
+          ? (String value) {
               if (validator(value)) return true;
               throw ValidationError(validationMessage ?? 'Invalid input');
             }
           : null,
     ).interact();
+    return result;
   }
 
   /// Ask for a number input
@@ -28,18 +29,18 @@ class InputPrompt {
     int? min,
     int? max,
   }) async {
-    final result = Input(
+    final String result = Input(
       prompt: question,
       defaultValue: defaultValue.toString(),
-      validator: (value) {
-        final num = int.tryParse(value);
-        if (num == null) {
+      validator: (String value) {
+        final int? parsedNum = int.tryParse(value);
+        if (parsedNum == null) {
           throw ValidationError('Please enter a valid number');
         }
-        if (min != null && num < min) {
+        if (min != null && parsedNum < min) {
           throw ValidationError('Value must be at least $min');
         }
-        if (max != null && num > max) {
+        if (max != null && parsedNum > max) {
           throw ValidationError('Value must be at most $max');
         }
         return true;
@@ -55,18 +56,18 @@ class InputPrompt {
     double? min,
     double? max,
   }) async {
-    final result = Input(
+    final String result = Input(
       prompt: question,
       defaultValue: defaultValue.toString(),
-      validator: (value) {
-        final num = double.tryParse(value);
-        if (num == null) {
+      validator: (String value) {
+        final double? parsedNum = double.tryParse(value);
+        if (parsedNum == null) {
           throw ValidationError('Please enter a valid number');
         }
-        if (min != null && num < min) {
+        if (min != null && parsedNum < min) {
           throw ValidationError('Value must be at least $min');
         }
-        if (max != null && num > max) {
+        if (max != null && parsedNum > max) {
           throw ValidationError('Value must be at most $max');
         }
         return true;
@@ -77,27 +78,29 @@ class InputPrompt {
 
   /// Ask for email input with validation
   static Future<String> askEmail(String question, {String? defaultValue}) async {
-    return Input(
+    final String result = Input(
       prompt: question,
       defaultValue: defaultValue ?? '',
-      validator: (value) {
+      validator: (String value) {
         if (value.contains('@') && value.contains('.')) return true;
         throw ValidationError('Please enter a valid email address');
       },
     ).interact();
+    return result;
   }
 
   /// Ask for URL input with validation
   static Future<String> askUrl(String question, {String? defaultValue}) async {
-    return Input(
+    final String result = Input(
       prompt: question,
       defaultValue: defaultValue ?? '',
-      validator: (value) {
+      validator: (String value) {
         if (value.startsWith('http://') || value.startsWith('https://')) {
           return true;
         }
         throw ValidationError('Please enter a valid URL (http:// or https://)');
       },
     ).interact();
+    return result;
   }
 }

@@ -101,12 +101,18 @@ flutter_launcher_icons:
     generate: true
 
 scripts:
-  # Firebase Deployment
-  deploy_firebase: flutter build web --release && cd .. && firebase deploy --project FIREBASE_PROJECT_ID
-  deploy_firestore: cd .. && firebase deploy --only firestore --project FIREBASE_PROJECT_ID
-  deploy_storage: cd .. && firebase deploy --only storage --project FIREBASE_PROJECT_ID
-  deploy_hosting: flutter build web --release && cd .. && firebase deploy --only hosting:release --project FIREBASE_PROJECT_ID
-  deploy_hosting_beta: flutter build web --release && cd .. && firebase deploy --only hosting:beta --project FIREBASE_PROJECT_ID
+  # Occult Commands
+  deploy: occult deploy all
+  deploy_firebase: occult deploy firebase
+  deploy_server: occult deploy server
+  check_tools: occult check all
+
+  # Firebase Deployment (Manual)
+  firebase_deploy: flutter build web --release && cd .. && firebase deploy --project FIREBASE_PROJECT_ID
+  firebase_firestore: cd .. && firebase deploy --only firestore --project FIREBASE_PROJECT_ID
+  firebase_storage: cd .. && firebase deploy --only storage --project FIREBASE_PROJECT_ID
+  firebase_hosting: flutter build web --release && cd .. && firebase deploy --only hosting:release --project FIREBASE_PROJECT_ID
+  firebase_hosting_beta: flutter build web --release && cd .. && firebase deploy --only hosting:beta --project FIREBASE_PROJECT_ID
 
   # Build & Deploy Web
   build_web: flutter build web --release

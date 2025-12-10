@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 
 import '../models/setup_config.dart';
 import '../models/template_info.dart';
-import '../utils/process_runner.dart';
+import '../utils/process_runner.dart' show ProcessResult, ProcessRunner;
 import '../utils/user_prompt.dart';
 
 /// Service for managing project dependencies
@@ -20,9 +20,9 @@ class DependencyManager {
   Future<bool> flutterPubGet(String projectPath) async {
     info('Getting dependencies for: ${p.basename(projectPath)}');
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'flutter',
-      ['pub', 'get'],
+      <String>['pub', 'get'],
       workingDirectory: projectPath,
       operationName: 'flutter pub get (${p.basename(projectPath)})',
     );
@@ -34,9 +34,9 @@ class DependencyManager {
   Future<bool> dartPubGet(String projectPath) async {
     info('Getting dependencies for: ${p.basename(projectPath)}');
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'dart',
-      ['pub', 'get'],
+      <String>['pub', 'get'],
       workingDirectory: projectPath,
       operationName: 'dart pub get (${p.basename(projectPath)})',
     );
@@ -52,13 +52,13 @@ class DependencyManager {
   }) async {
     info('Adding dependency: $package to ${p.basename(projectPath)}');
 
-    final args = ['pub', 'add'];
+    final List<String> args = <String>['pub', 'add'];
     if (isDev) {
       args.add('--dev');
     }
     args.add(package);
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'flutter',
       args,
       workingDirectory: projectPath,
@@ -74,7 +74,7 @@ class DependencyManager {
     List<String> packages, {
     bool isDev = false,
   }) async {
-    for (final package in packages) {
+    for (final String package in packages) {
       if (!await addDependency(projectPath, package, isDev: isDev)) {
         warn('Failed to add: $package');
         // Continue with other packages
@@ -85,7 +85,7 @@ class DependencyManager {
 
   /// Get dependencies for the main app
   Future<bool> getAppDependencies() async {
-    final projectPath = p.join(config.outputDir, config.appName);
+    final String projectPath = p.join(config.outputDir, config.appName);
 
     if (config.template == TemplateType.arcaneCli) {
       return await dartPubGet(projectPath);
@@ -98,7 +98,7 @@ class DependencyManager {
   Future<bool> getModelsDependencies() async {
     if (!config.createModels) return true;
 
-    final projectPath = p.join(config.outputDir, config.modelsPackageName);
+    final String projectPath = p.join(config.outputDir, config.modelsPackageName);
     return await dartPubGet(projectPath);
   }
 
@@ -106,14 +106,14 @@ class DependencyManager {
   Future<bool> getServerDependencies() async {
     if (!config.createServer) return true;
 
-    final projectPath = p.join(config.outputDir, config.serverPackageName);
+    final String projectPath = p.join(config.outputDir, config.serverPackageName);
     return await flutterPubGet(projectPath);
   }
 
   /// Get dependencies for all projects with progress tracking
   Future<bool> getAllDependencies() async {
     // Build list of packages to process
-    final packages = <(String, Future<bool> Function())>[];
+    final List<(String, Future<bool> Function())> packages = <(String, Future<bool> Function())>[];
 
     if (config.createModels) {
       packages.add(('Models', getModelsDependencies));
@@ -140,9 +140,9 @@ class DependencyManager {
   Future<bool> runBuildRunner(String projectPath) async {
     info('Running build_runner in: ${p.basename(projectPath)}');
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'dart',
-      ['run', 'build_runner', 'build', '--delete-conflicting-outputs'],
+      <String>['run', 'build_runner', 'build', '--delete-conflicting-outputs'],
       workingDirectory: projectPath,
       operationName: 'build_runner (${p.basename(projectPath)})',
     );
@@ -153,7 +153,7 @@ class DependencyManager {
   /// Run build_runner for all projects that need it with progress
   Future<bool> runAllBuildRunners() async {
     // Build list of projects needing build_runner
-    final projects = <(String, String)>[];
+    final List<(String, String)> projects = <(String, String)>[];
 
     // Models package needs build_runner for serialization
     if (config.createModels) {
@@ -188,17 +188,17 @@ class DependencyManager {
 
     info('Linking models package to other projects...');
 
-    final modelsPath = '../${config.modelsPackageName}';
+    final String modelsPath = '../${config.modelsPackageName}';
 
     // Link to main app
-    final appPubspec = File(
+    final File appPubspec = File(
       p.join(config.outputDir, config.appName, 'pubspec.yaml'),
     );
     await _addPathDependency(appPubspec, config.modelsPackageName, modelsPath);
 
     // Link to server
     if (config.createServer) {
-      final serverPubspec = File(
+      final File serverPubspec = File(
         p.join(config.outputDir, config.serverPackageName, 'pubspec.yaml'),
       );
       await _addPathDependency(
@@ -222,7 +222,7 @@ class DependencyManager {
       return;
     }
 
-    var content = await pubspecFile.readAsString();
+    String content = await pubspecFile.readAsString();
 
     // Check if dependency already exists
     if (content.contains('$packageName:')) {
@@ -231,13 +231,13 @@ class DependencyManager {
     }
 
     // Find dependencies: section and add after it
-    final dependenciesMatch = RegExp(
+    final RegExpMatch? dependenciesMatch = RegExp(
       r'^dependencies:\s*$',
       multiLine: true,
     ).firstMatch(content);
     if (dependenciesMatch != null) {
-      final insertPoint = dependenciesMatch.end;
-      final dependencyLine = '\n  $packageName:\n    path: $relativePath\n';
+      final int insertPoint = dependenciesMatch.end;
+      final String dependencyLine = '\n  $packageName:\n    path: $relativePath\n';
       content =
           content.substring(0, insertPoint) +
           dependencyLine +

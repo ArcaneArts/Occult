@@ -35,7 +35,7 @@ ValidationResult validateAppName(String name) {
   }
 
   // Check for valid snake_case pattern
-  final validPattern = RegExp(r'^[a-z][a-z0-9_]*$');
+  final RegExp validPattern = RegExp(r'^[a-z][a-z0-9_]*$');
   if (!validPattern.hasMatch(name)) {
     return const ValidationResult.invalid(
       'App name must start with a letter and contain only lowercase letters, numbers, and underscores',
@@ -43,7 +43,7 @@ ValidationResult validateAppName(String name) {
   }
 
   // Dart reserved words
-  const reservedWords = [
+  const List<String> reservedWords = <String>[
     'abstract',
     'as',
     'assert',
@@ -131,7 +131,7 @@ ValidationResult validateFirebaseProjectId(String id) {
   }
 
   // Firebase project ID pattern: lowercase, numbers, hyphens
-  final validPattern = RegExp(r'^[a-z][a-z0-9-]*[a-z0-9]$');
+  final RegExp validPattern = RegExp(r'^[a-z][a-z0-9-]*[a-z0-9]$');
   if (!validPattern.hasMatch(id) && id.length > 1) {
     return const ValidationResult.invalid(
       'Firebase project ID must start with a letter, contain only lowercase letters, numbers, and hyphens, and end with a letter or number',
@@ -170,7 +170,7 @@ ValidationResult validateOrgDomain(String domain) {
   }
 
   // Basic reverse domain notation pattern
-  final validPattern = RegExp(r'^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$');
+  final RegExp validPattern = RegExp(r'^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$');
   if (!validPattern.hasMatch(domain.toLowerCase())) {
     return const ValidationResult.invalid(
       'Organization domain should be in reverse notation (e.g., com.example, art.arcane)',
@@ -182,7 +182,7 @@ ValidationResult validateOrgDomain(String domain) {
 
 /// Validate template selection (1-4 or template name)
 ValidationResult validateTemplate(String template) {
-  const validTemplates = [
+  const List<String> validTemplates = <String>[
     '1',
     '2',
     '3',
@@ -209,7 +209,7 @@ ValidationResult validatePath(String path) {
   }
 
   // Check for obviously invalid characters (platform-specific)
-  final invalidChars = RegExp(r'[\x00-\x1F]');
+  final RegExp invalidChars = RegExp(r'[\x00-\x1F]');
   if (invalidChars.hasMatch(path)) {
     return const ValidationResult.invalid('Path contains invalid characters');
   }

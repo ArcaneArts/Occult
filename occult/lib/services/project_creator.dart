@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 
 import '../models/setup_config.dart';
 import '../models/template_info.dart';
-import '../utils/process_runner.dart';
+import '../utils/process_runner.dart' show ProcessResult, ProcessRunner;
 
 /// Service for creating Flutter/Dart projects
 class ProjectCreator {
@@ -21,12 +21,12 @@ class ProjectCreator {
       return false;
     }
 
-    final projectPath = p.join(config.outputDir, config.appName);
+    final String projectPath = p.join(config.outputDir, config.appName);
 
     info('Creating Flutter app: ${config.appName}');
 
     // Build flutter create command
-    final args = [
+    final List<String> args = <String>[
       'create',
       '--org',
       config.orgDomain,
@@ -36,13 +36,13 @@ class ProjectCreator {
 
     // Add platforms from config (user may have selected subset)
     if (config.platforms.isNotEmpty) {
-      args.addAll(['--platforms', config.platforms.join(',')]);
+      args.addAll(<String>['--platforms', config.platforms.join(',')]);
     }
 
     // Add the project path
     args.add(projectPath);
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'flutter',
       args,
       operationName: 'Flutter create',
@@ -63,14 +63,14 @@ class ProjectCreator {
       return false;
     }
 
-    final projectPath = p.join(config.outputDir, config.appName);
+    final String projectPath = p.join(config.outputDir, config.appName);
 
     info('Creating Dart CLI: ${config.appName}');
 
     // Use dart create for CLI projects
-    final args = ['create', '-t', 'console', projectPath];
+    final List<String> args = <String>['create', '-t', 'console', projectPath];
 
-    final result = await _runner.runWithRetry(
+    final ProcessResult? result = await _runner.runWithRetry(
       'dart',
       args,
       operationName: 'Dart create',
@@ -83,8 +83,8 @@ class ProjectCreator {
 
     // dart create generates default files that we'll replace with our template
     // Delete the generated lib and bin folders to replace with template
-    final libDir = Directory(p.join(projectPath, 'lib'));
-    final binDir = Directory(p.join(projectPath, 'bin'));
+    final Directory libDir = Directory(p.join(projectPath, 'lib'));
+    final Directory binDir = Directory(p.join(projectPath, 'bin'));
 
     if (libDir.existsSync()) {
       await libDir.delete(recursive: true);
@@ -103,12 +103,12 @@ class ProjectCreator {
       return false;
     }
 
-    final projectPath = p.join(config.outputDir, config.modelsPackageName);
+    final String projectPath = p.join(config.outputDir, config.modelsPackageName);
 
     info('Creating models package: ${config.modelsPackageName}');
 
     // Use flutter create -t package for models
-    final args = [
+    final List<String> args = <String>[
       'create',
       '-t',
       'package',

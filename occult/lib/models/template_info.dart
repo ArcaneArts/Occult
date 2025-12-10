@@ -99,7 +99,7 @@ extension TemplateTypeExtension on TemplateType {
 
   /// Parse from string (number or name)
   static TemplateType? parse(String input) {
-    final lower = input.toLowerCase().trim();
+    final String lower = input.toLowerCase().trim();
 
     // Try parsing as number
     switch (lower) {
@@ -114,7 +114,7 @@ extension TemplateTypeExtension on TemplateType {
     }
 
     // Try parsing as name
-    for (final template in TemplateType.values) {
+    for (final TemplateType template in TemplateType.values) {
       if (template.directoryName == lower ||
           template.name.toLowerCase() == lower) {
         return template;
@@ -153,6 +153,6 @@ class TemplateInfo {
 
   /// Get all available templates
   static List<TemplateInfo> get all {
-    return TemplateType.values.map((t) => TemplateInfo.fromType(t)).toList();
+    return TemplateType.values.map((TemplateType t) => TemplateInfo.fromType(t)).toList();
   }
 }

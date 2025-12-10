@@ -28,12 +28,12 @@ class ProgressPrompt {
     String? rightPrompt,
     double size = 0.5,
   }) {
-    final progress = Progress(
+    final interact.ProgressState progress = Progress(
       length: total,
       size: size,
       rightPrompt: rightPrompt != null
-          ? (current) => ' $rightPrompt ($current/$total)'
-          : (current) => ' $current/$total',
+          ? (int current) => ' $rightPrompt ($current/$total)'
+          : (int current) => ' $current/$total',
     ).interact();
     return OccultProgressState(progress, total);
   }
@@ -47,7 +47,7 @@ class ProgressPrompt {
     print('');
     info(title);
 
-    final progress = createProgress(tasks.length);
+    final OccultProgressState progress = createProgress(tasks.length);
 
     for (int i = 0; i < tasks.length; i++) {
       if (taskNames != null && i < taskNames.length) {
@@ -63,8 +63,8 @@ class ProgressPrompt {
 
   /// Simple manual progress bar display
   static void showProgress(int current, int total, String message) {
-    final percent = (current / total * 100).toStringAsFixed(0);
-    final bar = _makeProgressBar(current, total, 30);
+    final String percent = (current / total * 100).toStringAsFixed(0);
+    final String bar = _makeProgressBar(current, total, 30);
 
     // Use carriage return to overwrite the line
     stdout.write('\r[$bar] $percent% ($current/$total) $message'.padRight(100));
@@ -76,8 +76,8 @@ class ProgressPrompt {
   }
 
   static String _makeProgressBar(int current, int total, int width) {
-    final filled = (current / total * width).round();
-    final empty = width - filled;
+    final int filled = (current / total * width).round();
+    final int empty = width - filled;
     return '\u2588' * filled + '\u2591' * empty;
   }
 }
