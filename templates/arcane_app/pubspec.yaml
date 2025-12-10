@@ -22,7 +22,7 @@ dependencies:
   pylon: ^3.2.0
   package_info_plus: ^9.0.0
   fast_log: ^1.0.7
-  artifact: ^1.0.19 # This is the Models and Data Structures used across Arcane Apps.
+  artifact: ^1.0.20 # This is the Models and Data Structures used across Arcane Apps.
 
   # ARCANE DESKTOP - Transient [Only enabled if building for desktop]
   #  arcane_desktop: 2.1.0 # Disabled for now, as this is a cross-platform app, not desktop only.

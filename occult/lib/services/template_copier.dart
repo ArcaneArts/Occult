@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 
 import '../models/setup_config.dart';
 import '../models/template_info.dart';
+import '../utils/user_prompt.dart';
 import 'placeholder_replacer.dart';
 
 /// Service for copying and customizing templates
@@ -228,9 +229,20 @@ class TemplateCopier {
     return skipFiles.contains(fileName);
   }
 
-  /// Copy all templates based on config
+  /// Copy all templates based on config with progress tracking
   Future<void> copyAll() async {
-    info('Starting template copy...');
+    // Build list of templates to copy
+    final templates = <(String, Future<void> Function())>[
+      ('Main app', copyAppTemplate),
+    ];
+
+    if (config.createModels) {
+      templates.add(('Models package', copyModelsTemplate));
+    }
+    if (config.createServer) {
+      templates.add(('Server app', copyServerTemplate));
+    }
+    templates.add(('References', copyReferences));
 
     // Create output directory if needed
     final outputDir = Directory(config.outputDir);
@@ -238,23 +250,13 @@ class TemplateCopier {
       await outputDir.create(recursive: true);
     }
 
-    // Copy main app template
-    await copyAppTemplate();
-
-    // Copy models if enabled
-    if (config.createModels) {
-      await copyModelsTemplate();
+    // Copy each template with progress
+    for (int i = 0; i < templates.length; i++) {
+      final (name, copier) = templates[i];
+      UserPrompt.showProgress(i, templates.length, 'Copying $name...');
+      await copier();
     }
-
-    // Copy server if enabled
-    if (config.createServer) {
-      await copyServerTemplate();
-    }
-
-    // Always copy references
-    await copyReferences();
-
-    success('All templates copied successfully!');
+    UserPrompt.showProgress(templates.length, templates.length, 'All templates copied');
   }
 
   /// Get list of files that would be copied (dry run)

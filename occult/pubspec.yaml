@@ -44,7 +44,6 @@ scripts:
   test_coverage: dart test --coverage=coverage
   test_verbose: dart test --reporter=expanded
 
-
   # Local Installation (for development)
   activate: dart pub global activate . --source=path
   deactivate: dart pub global deactivate occult

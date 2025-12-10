@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import '../models/setup_config.dart';
 import '../models/template_info.dart';
 import '../utils/process_runner.dart';
+import '../utils/user_prompt.dart';
 
 /// Service for managing project dependencies
 class DependencyManager {
@@ -109,30 +110,29 @@ class DependencyManager {
     return await flutterPubGet(projectPath);
   }
 
-  /// Get dependencies for all projects
+  /// Get dependencies for all projects with progress tracking
   Future<bool> getAllDependencies() async {
-    info('Getting all project dependencies...');
+    // Build list of packages to process
+    final packages = <(String, Future<bool> Function())>[];
 
-    // Get models first (other projects may depend on it)
     if (config.createModels) {
-      if (!await getModelsDependencies()) {
-        warn('Failed to get models dependencies');
-      }
+      packages.add(('Models', getModelsDependencies));
     }
-
-    // Get main app dependencies
-    if (!await getAppDependencies()) {
-      warn('Failed to get app dependencies');
-    }
-
-    // Get server dependencies
+    packages.add(('Main app', getAppDependencies));
     if (config.createServer) {
-      if (!await getServerDependencies()) {
-        warn('Failed to get server dependencies');
-      }
+      packages.add(('Server', getServerDependencies));
     }
 
-    success('Dependencies retrieved for all projects');
+    // Process each package with progress
+    for (int i = 0; i < packages.length; i++) {
+      final (name, getter) = packages[i];
+      UserPrompt.showProgress(i, packages.length, 'Getting $name dependencies...');
+      if (!await getter()) {
+        warn('Failed to get $name dependencies');
+      }
+    }
+    UserPrompt.showProgress(packages.length, packages.length, 'All dependencies retrieved');
+
     return true;
   }
 
@@ -150,27 +150,35 @@ class DependencyManager {
     return result != null && result.success;
   }
 
-  /// Run build_runner for all projects that need it
+  /// Run build_runner for all projects that need it with progress
   Future<bool> runAllBuildRunners() async {
-    info('Running build_runner for all projects...');
+    // Build list of projects needing build_runner
+    final projects = <(String, String)>[];
 
     // Models package needs build_runner for serialization
     if (config.createModels) {
-      final modelsPath = p.join(config.outputDir, config.modelsPackageName);
-      if (!await runBuildRunner(modelsPath)) {
-        warn('Failed to run build_runner for models');
-      }
+      projects.add(('Models', p.join(config.outputDir, config.modelsPackageName)));
     }
 
     // CLI apps need build_runner for cli_gen
     if (config.template == TemplateType.arcaneCli) {
-      final appPath = p.join(config.outputDir, config.appName);
-      if (!await runBuildRunner(appPath)) {
-        warn('Failed to run build_runner for CLI');
-      }
+      projects.add(('CLI app', p.join(config.outputDir, config.appName)));
     }
 
-    success('Build runners completed');
+    if (projects.isEmpty) {
+      return true;
+    }
+
+    // Run build_runner for each project with progress
+    for (int i = 0; i < projects.length; i++) {
+      final (name, path) = projects[i];
+      UserPrompt.showProgress(i, projects.length, 'Running build_runner for $name...');
+      if (!await runBuildRunner(path)) {
+        warn('Failed to run build_runner for $name');
+      }
+    }
+    UserPrompt.showProgress(projects.length, projects.length, 'Code generation complete');
+
     return true;
   }
 

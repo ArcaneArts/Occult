@@ -1,274 +1,264 @@
-import 'dart:io';
+/// Unified prompt utilities for CLI interactions
+///
+/// This library provides a comprehensive set of interactive terminal prompts
+/// using the `interact` package. Each category is in its own file for modularity.
+library;
 
-import 'package:fast_log/fast_log.dart';
-import 'package:interact/interact.dart';
+// Export all prompt modules
+export 'prompt/confirm_prompt.dart';
+export 'prompt/display_prompt.dart';
+export 'prompt/input_prompt.dart';
+export 'prompt/password_prompt.dart';
+export 'prompt/progress_prompt.dart';
+export 'prompt/retry_prompt.dart';
+export 'prompt/select_prompt.dart';
+export 'prompt/sort_prompt.dart';
+export 'prompt/spinner_prompt.dart';
+export 'prompt/wizard_prompt.dart';
 
-/// Modern interactive CLI prompts with arrow key navigation
+import 'prompt/confirm_prompt.dart';
+import 'prompt/display_prompt.dart';
+import 'prompt/input_prompt.dart';
+import 'prompt/password_prompt.dart';
+import 'prompt/progress_prompt.dart';
+import 'prompt/retry_prompt.dart';
+import 'prompt/select_prompt.dart';
+import 'prompt/sort_prompt.dart';
+import 'prompt/spinner_prompt.dart';
+import 'prompt/wizard_prompt.dart';
+
+/// Unified API for all prompt utilities
+///
+/// This class delegates to specialized prompt classes for each category.
+/// You can either use this unified class or import specific prompt classes directly.
 class UserPrompt {
-  /// Ask a yes/no question with arrow key selection
-  static Future<bool> askYesNo(
+  // ============================================================================
+  // CONFIRMATION PROMPTS (ConfirmPrompt)
+  // ============================================================================
+
+  static Future<bool> askYesNo(String question, {bool defaultValue = true}) =>
+      ConfirmPrompt.askYesNo(question, defaultValue: defaultValue);
+
+  static Future<bool> askConfirm(
     String question, {
     bool defaultValue = true,
-  }) async {
-    return Confirm(
-      prompt: question,
-      defaultValue: defaultValue,
-      waitForNewLine: true,
-    ).interact();
-  }
+    String yesLabel = 'Yes',
+    String noLabel = 'No',
+  }) =>
+      ConfirmPrompt.askConfirm(
+        question,
+        defaultValue: defaultValue,
+        yesLabel: yesLabel,
+        noLabel: noLabel,
+      );
 
-  /// Ask for a string input with validation
+  // ============================================================================
+  // TEXT INPUT PROMPTS (InputPrompt)
+  // ============================================================================
+
   static Future<String> askString(
     String question, {
     String? defaultValue,
     bool Function(String)? validator,
     String? validationMessage,
-  }) async {
-    return Input(
-      prompt: question,
-      defaultValue: defaultValue ?? '',
-      validator: validator != null
-          ? (value) {
-              if (validator(value)) return true;
-              throw ValidationError(validationMessage ?? 'Invalid input');
-            }
-          : null,
-    ).interact();
-  }
+  }) =>
+      InputPrompt.askString(
+        question,
+        defaultValue: defaultValue,
+        validator: validator,
+        validationMessage: validationMessage,
+      );
 
-  /// Ask for a number input
   static Future<int> askInt(
     String question, {
     required int defaultValue,
-  }) async {
-    final result = Input(
-      prompt: question,
-      defaultValue: defaultValue.toString(),
-      validator: (value) {
-        if (int.tryParse(value) != null) return true;
-        throw ValidationError('Please enter a valid number');
-      },
-    ).interact();
-    return int.parse(result);
-  }
+    int? min,
+    int? max,
+  }) =>
+      InputPrompt.askInt(question, defaultValue: defaultValue, min: min, max: max);
 
-  /// Show a menu with arrow key navigation and get user selection
-  static Future<int> showMenu(
+  static Future<double> askDouble(
+    String question, {
+    required double defaultValue,
+    double? min,
+    double? max,
+  }) =>
+      InputPrompt.askDouble(question, defaultValue: defaultValue, min: min, max: max);
+
+  static Future<String> askEmail(String question, {String? defaultValue}) =>
+      InputPrompt.askEmail(question, defaultValue: defaultValue);
+
+  static Future<String> askUrl(String question, {String? defaultValue}) =>
+      InputPrompt.askUrl(question, defaultValue: defaultValue);
+
+  // ============================================================================
+  // PASSWORD INPUT (PasswordPrompt)
+  // ============================================================================
+
+  static Future<String> askPassword(
+    String prompt, {
+    bool confirm = false,
+    String? confirmPrompt,
+  }) =>
+      PasswordPrompt.askPassword(prompt, confirm: confirm, confirmPrompt: confirmPrompt);
+
+  static Future<String> askSecret(String prompt) => PasswordPrompt.askSecret(prompt);
+
+  // ============================================================================
+  // SELECTION PROMPTS (SelectPrompt)
+  // ============================================================================
+
+  static Future<int> showMenu(String title, List<String> options, {int? defaultIndex}) =>
+      SelectPrompt.showMenu(title, options, defaultIndex: defaultIndex);
+
+  static Future<String> showMenuGetValue(
     String title,
     List<String> options, {
     int? defaultIndex,
-  }) async {
-    print('');
-    return Select(
-      prompt: title,
-      options: options,
-      initialIndex: defaultIndex ?? 0,
-    ).interact();
-  }
+  }) =>
+      SelectPrompt.showMenuGetValue(title, options, defaultIndex: defaultIndex);
 
-  /// Multi-select with checkboxes and arrow key navigation
   static Future<List<int>> askMultiSelect(
     String title,
     List<String> options, {
     List<String>? defaultSelected,
-  }) async {
-    // Convert defaultSelected names to boolean list
-    final defaults = options.map((opt) {
-      return defaultSelected?.contains(opt) ?? true;
-    }).toList();
+    List<bool>? defaults,
+  }) =>
+      SelectPrompt.askMultiSelect(
+        title,
+        options,
+        defaultSelected: defaultSelected,
+        defaults: defaults,
+      );
 
-    print('');
-    return MultiSelect(
-      prompt: title,
-      options: options,
-      defaults: defaults,
-    ).interact();
-  }
-
-  /// Multi-select that returns the selected option names
   static Future<List<String>> askMultiSelectNames(
     String title,
     List<String> options, {
     List<String>? defaultSelected,
-  }) async {
-    final indices = await askMultiSelect(
-      title,
-      options,
-      defaultSelected: defaultSelected,
-    );
-    return indices.map((i) => options[i]).toList();
-  }
+  }) =>
+      SelectPrompt.askMultiSelectNames(title, options, defaultSelected: defaultSelected);
 
-  /// Show a spinner while performing an async operation
-  static Future<T> withSpinner<T>(
-    String message,
-    Future<T> Function() action,
-  ) async {
-    final spinner = Spinner(
-      icon: '⠋',
-      rightPrompt: (done) => done ? 'Done!' : message,
-    ).interact();
-
-    try {
-      final result = await action();
-      spinner.done();
-      return result;
-    } catch (e) {
-      spinner.done();
-      rethrow;
-    }
-  }
-
-  /// Show a pretty configuration preview box
-  static void printConfigPreview(
-    Map<String, String> config, {
-    String title = 'Configuration Preview',
-  }) {
-    // Calculate width based on longest content
-    int maxContentLen = title.length;
-    for (final entry in config.entries) {
-      final lineLen = '${entry.key}: ${entry.value}'.length;
-      if (lineLen > maxContentLen) maxContentLen = lineLen;
-    }
-    // Box structure: │ content │ = content + 4 chars for "│ " and " │"
-    // Line width = content width + 2 for the spaces inside borders
-    final innerWidth = (maxContentLen + 2).clamp(38, 78);
-    final line = '\u2500' * innerWidth;
-
-    print('');
-    print('\u256d$line\u256e');
-    _printBoxLine(title, innerWidth, center: true);
-    print('\u251c$line\u2524');
-
-    for (final entry in config.entries) {
-      _printBoxLine('${entry.key}: ${entry.value}', innerWidth);
-    }
-
-    print('\u2570$line\u256f');
-  }
-
-  static void _printBoxLine(String text, int innerWidth, {bool center = false}) {
-    // innerWidth is the width between the │ chars (includes the space padding)
-    // So actual content area is innerWidth - 2 for the spaces
-    final contentWidth = innerWidth - 2;
-    String content;
-    if (center) {
-      final leftPad = (contentWidth - text.length) ~/ 2;
-      final rightPad = contentWidth - text.length - leftPad;
-      content = ' ' * leftPad + text + ' ' * rightPad;
-    } else {
-      content = text.length > contentWidth
-          ? text.substring(0, contentWidth)
-          : text.padRight(contentWidth);
-    }
-    print('\u2502 $content \u2502');
-  }
-
-  /// Show progress bar during operations
-  static void showProgress(int current, int total, String message) {
-    final percent = (current / total * 100).toStringAsFixed(0);
-    final bar = _makeProgressBar(current, total, 30);
-
-    // Use carriage return to overwrite the line
-    stdout.write('\r[$bar] $percent% ($current/$total) $message'.padRight(100));
-
-    // If complete, move to next line
-    if (current == total) {
-      print('');
-    }
-  }
-
-  static String _makeProgressBar(int current, int total, int width) {
-    final filled = (current / total * width).round();
-    final empty = width - filled;
-    return '\u2588' * filled + '\u2591' * empty;
-  }
-
-  /// Print a header banner
-  static void printBanner(String title, {String? subtitle}) {
-    // Calculate width based on content
-    int maxContentLen = title.length;
-    if (subtitle != null && subtitle.length > maxContentLen) {
-      maxContentLen = subtitle.length;
-    }
-    // Inner width includes space padding on each side
-    final innerWidth = (maxContentLen + 4).clamp(38, 78);
-    final line = '\u2550' * innerWidth;
-
-    print('');
-    print('\u2554$line\u2557');
-    _printBannerLine(title, innerWidth);
-    if (subtitle != null) {
-      _printBannerLine(subtitle, innerWidth);
-    }
-    print('\u255a$line\u255d');
-    print('');
-  }
-
-  static void _printBannerLine(String text, int innerWidth) {
-    // Content width is innerWidth minus 2 for space padding
-    final contentWidth = innerWidth - 2;
-    final leftPad = (contentWidth - text.length) ~/ 2;
-    final rightPad = contentWidth - text.length - leftPad;
-    final content = ' ' * leftPad + text + ' ' * rightPad;
-    print('\u2551 $content \u2551');
-  }
-
-  /// Ask user for retry choice after failure
-  static Future<String> askRetryChoice(String operationName) async {
-    print('');
-    warn('$operationName failed.');
-
-    final options = ['Retry', 'Skip', 'Abort'];
-    final choice = Select(
-      prompt: 'What would you like to do?',
-      options: options,
-      initialIndex: 0,
-    ).interact();
-
-    return ['r', 's', 'a'][choice];
-  }
-
-  /// Press enter to continue
-  static Future<void> pressEnter({
-    String message = 'Press Enter to continue...',
-  }) async {
-    stdout.write(message);
-    stdin.readLineSync();
-  }
-
-  /// Password input (hidden)
-  static Future<String> askPassword(
-    String prompt, {
-    bool confirm = false,
-  }) async {
-    return Password(
-      prompt: prompt,
-      confirmation: confirm,
-    ).interact();
-  }
-
-  /// Theme selector with preview
   static Future<int> askTheme(
     String prompt,
     List<String> themes,
     List<String> descriptions, {
     int initialIndex = 0,
-  }) async {
-    // Build options with descriptions
-    final options = <String>[];
-    for (int i = 0; i < themes.length; i++) {
-      if (i < descriptions.length) {
-        options.add('${themes[i]} - ${descriptions[i]}');
-      } else {
-        options.add(themes[i]);
-      }
-    }
+  }) =>
+      SelectPrompt.askTheme(prompt, themes, descriptions, initialIndex: initialIndex);
 
-    return Select(
-      prompt: prompt,
-      options: options,
-      initialIndex: initialIndex,
-    ).interact();
-  }
+  // ============================================================================
+  // SORTING / ORDERING (SortPrompt)
+  // ============================================================================
+
+  static Future<List<String>> askSort(
+    String title,
+    List<String> options, {
+    bool showOutput = true,
+  }) =>
+      SortPrompt.askSort(title, options, showOutput: showOutput);
+
+  static Future<List<String>> askSortGetValues(
+    String title,
+    List<String> options, {
+    bool showOutput = true,
+  }) =>
+      SortPrompt.askSortGetValues(title, options, showOutput: showOutput);
+
+  static Future<List<String>> askPrioritize(String title, List<String> items) =>
+      SortPrompt.askPrioritize(title, items);
+
+  // ============================================================================
+  // SPINNERS (SpinnerPrompt)
+  // ============================================================================
+
+  static Future<T> withSpinner<T>(
+    String message,
+    Future<T> Function() action, {
+    String? doneMessage,
+    String? icon,
+  }) =>
+      SpinnerPrompt.withSpinner(message, action, doneMessage: doneMessage, icon: icon);
+
+  static Future<T> withLoadingSpinner<T>(
+    String message,
+    Future<T> Function() action,
+  ) =>
+      SpinnerPrompt.withLoadingSpinner(message, action);
+
+  // ============================================================================
+  // PROGRESS (ProgressPrompt)
+  // ============================================================================
+
+  static OccultProgressState createProgress(
+    int total, {
+    String? rightPrompt,
+    double size = 0.5,
+  }) =>
+      ProgressPrompt.createProgress(total, rightPrompt: rightPrompt, size: size);
+
+  static Future<void> withProgress<T>(
+    String title,
+    List<Future<T> Function()> tasks, {
+    List<String>? taskNames,
+  }) =>
+      ProgressPrompt.withProgress(title, tasks, taskNames: taskNames);
+
+  static void showProgress(int current, int total, String message) =>
+      ProgressPrompt.showProgress(current, total, message);
+
+  // ============================================================================
+  // WIZARD (WizardPrompt)
+  // ============================================================================
+
+  static void printStepIndicator(int currentStep, int totalSteps, String stepName) =>
+      WizardPrompt.printStepIndicator(currentStep, totalSteps, stepName);
+
+  static Future<Map<String, dynamic>> runWizard(String title, List<WizardStep> steps) =>
+      WizardPrompt.runWizard(title, steps);
+
+  // ============================================================================
+  // RETRY / ERROR HANDLING (RetryPrompt)
+  // ============================================================================
+
+  static Future<RetryChoice> askRetryChoice(String operationName) =>
+      RetryPrompt.askRetryChoice(operationName);
+
+  static Future<T?> withRetry<T>(
+    String operationName,
+    Future<T> Function() action, {
+    int maxRetries = 3,
+  }) =>
+      RetryPrompt.withRetry(operationName, action, maxRetries: maxRetries);
+
+  // ============================================================================
+  // DISPLAY UTILITIES (DisplayPrompt)
+  // ============================================================================
+
+  static void printBanner(String title, {String? subtitle}) =>
+      DisplayPrompt.printBanner(title, subtitle: subtitle);
+
+  static void printDivider({String? title, int width = 60}) =>
+      DisplayPrompt.printDivider(title: title, width: width);
+
+  static void printConfigPreview(
+    Map<String, String> config, {
+    String title = 'Configuration Preview',
+  }) =>
+      DisplayPrompt.printConfigPreview(config, title: title);
+
+  static void printList(List<String> items, {String bullet = '•'}) =>
+      DisplayPrompt.printList(items, bullet: bullet);
+
+  static void printNumberedList(List<String> items) => DisplayPrompt.printNumberedList(items);
+
+  static void printSuccessBox(String message, {List<String>? details}) =>
+      DisplayPrompt.printSuccessBox(message, details: details);
+
+  static void printErrorBox(String message, {String? hint}) =>
+      DisplayPrompt.printErrorBox(message, hint: hint);
+
+  static Future<void> pressEnter({String message = 'Press Enter to continue...'}) =>
+      DisplayPrompt.pressEnter(message: message);
+
+  static void clearScreen() => DisplayPrompt.clearScreen();
 }

@@ -4,12 +4,13 @@ Command-line interface for arcane_cli_app built with the Arcane Templates CLI fr
 
 ## Overview
 
-This is a Dart-based CLI application that uses `cli_gen` for beautiful, type-safe command generation. The CLI integrates with your arcane_cli_app ecosystem including models, server API, and Firebase services.
+This is a Dart-based CLI application that uses `darted_cli` for declarative, clean command structure. The CLI integrates with your arcane_cli_app ecosystem including models, server API, and Firebase services.
 
 ## Features
 
-- **Type-Safe Commands**: Leverages `cli_gen` for automatic argument parsing and validation
-- **Beautiful Help Text**: Auto-generated documentation from code comments
+- **Declarative Commands**: Uses `darted_cli` for clean, no-codegen command structure
+- **Interactive Prompts**: Built-in `interact` package for arrow-key menus, confirmations, and inputs
+- **Beautiful Help Text**: Auto-generated documentation from command definitions
 - **Config Management**: Built-in configuration file handling
 - **Firebase Integration**: Admin SDK commands for Firestore and Auth (if enabled)
 - **Server API Client**: Authenticated HTTP client for calling your server (if enabled)
@@ -22,9 +23,6 @@ This is a Dart-based CLI application that uses `cli_gen` for beautiful, type-saf
 ```bash
 # Get dependencies
 dart pub get
-
-# Generate CLI code
-dart run build_runner build --delete-conflicting-outputs
 
 # Run the CLI
 dart run bin/main.dart --help
@@ -40,7 +38,7 @@ dart pub global activate . --source=path
 
 # Now use anywhere on YOUR machine
 arcane_cli_app --help
-arcane_cli_app hello greet "World"
+arcane_cli_app hello greet --name "World"
 
 # Deactivate when done
 dart pub global deactivate arcane_cli_app
@@ -99,7 +97,7 @@ dart pub global activate arcane_cli_app
 
 # Run your CLI
 arcane_cli_app --help
-arcane_cli_app hello greet "World"
+arcane_cli_app hello greet --name "World"
 ```
 
 ### PATH Configuration
@@ -134,10 +132,10 @@ Basic examples demonstrating CLI structure:
 
 ```bash
 # Greet someone
-arcane_cli_app hello greet "Alice"
+arcane_cli_app hello greet --name "Alice"
 
 # Multiple greetings with enthusiasm
-arcane_cli_app hello greet "Bob" --times 3 --enthusiastic
+arcane_cli_app hello greet --name "Bob" --times --enthusiastic
 
 # Show version
 arcane_cli_app hello version
@@ -152,11 +150,11 @@ Manage application configuration (stored in `~/.arcane_cli_app/config.yaml`):
 arcane_cli_app config init
 
 # Set a value
-arcane_cli_app config set server_url https://api.example.com
-arcane_cli_app config set api_key your_secret_key
+arcane_cli_app config set --key server_url --value https://api.example.com
+arcane_cli_app config set --key api_key --value your_secret_key
 
 # Get a value
-arcane_cli_app config get server_url
+arcane_cli_app config get --key server_url
 
 # List all config
 arcane_cli_app config list
@@ -172,51 +170,73 @@ When Firebase is enabled, the CLI has access to `fire_crud` and can interact wit
 **Example: Creating a Firebase command**
 
 ```dart
-import 'package:cli_annotations/cli_annotations.dart';
+// lib/cli/handlers/data_handlers.dart
 import 'package:fast_log/fast_log.dart';
 import 'package:fire_crud/fire_crud.dart';
 import 'package:arcane_models/arcane_models.dart';
 
-part 'data_command.g.dart';
+Future<void> handleListUsers(Map<String, dynamic> args, Map<String, dynamic> flags) async {
+  final limit = int.tryParse(args['limit'] as String? ?? '10') ?? 10;
 
-@cliSubcommand
-class DataCommand extends _$DataCommand {
-  @cliCommand
-  Future<void> listUsers({int limit = 10}) async {
-    info("Fetching users from Firestore...");
+  info("Fetching users from Firestore...");
 
-    final List<User> users = await User.fireCollection()
-      .limit(limit)
-      .get();
+  final List<User> users = await User.fireCollection()
+    .limit(limit)
+    .get();
 
-    for (final User user in users) {
-      print('${user.id}: ${user.name}');
-    }
-
-    success("Listed ${users.length} user(s)");
+  for (final User user in users) {
+    print('${user.id}: ${user.name}');
   }
 
-  @cliCommand
-  Future<void> createUser(String name, String email) async {
-    info("Creating user...");
+  success("Listed ${users.length} user(s)");
+}
 
-    final User user = User(
-      id: FireCrud.generateId(),
-      name: name,
-      email: email,
-    );
+Future<void> handleCreateUser(Map<String, dynamic> args, Map<String, dynamic> flags) async {
+  final name = args['name'] as String?;
+  final email = args['email'] as String?;
 
-    await user.save();
-    success("User created: ${user.id}");
+  if (name == null || email == null) {
+    error('Please provide both name and email');
+    return;
   }
+
+  info("Creating user...");
+
+  final User user = User(
+    id: FireCrud.generateId(),
+    name: name,
+    email: email,
+  );
+
+  await user.save();
+  success("User created: ${user.id}");
 }
 ```
 
-Then register it in your CLI runner and run code generation:
-```bash
-dart run build_runner build --delete-conflicting-outputs
-arcane_cli_app data list-users --limit 5
-arcane_cli_app data create-user "Alice" "alice@example.com"
+Then add to your commands tree:
+```dart
+// lib/cli/commands.dart
+DartedCommand(
+  name: 'data',
+  helperDescription: 'Firestore data operations',
+  subCommands: [
+    DartedCommand(
+      name: 'list-users',
+      helperDescription: 'List users from Firestore',
+      arguments: [DartedArgument(name: 'limit', abbreviation: 'l', defaultValue: '10')],
+      callback: (args, flags) => handleListUsers(args ?? {}, _boolToMap(flags)),
+    ),
+    DartedCommand(
+      name: 'create-user',
+      helperDescription: 'Create a new user',
+      arguments: [
+        DartedArgument(name: 'name', abbreviation: 'n'),
+        DartedArgument(name: 'email', abbreviation: 'e'),
+      ],
+      callback: (args, flags) => handleCreateUser(args ?? {}, _boolToMap(flags)),
+    ),
+  ],
+),
 ```
 
 ### Server Commands (If Enabled)
@@ -250,70 +270,63 @@ arcane_cli_app/
 ├── bin/
 │   └── main.dart              # Entry point
 ├── lib/
-│   ├── arcane_cli_app.dart           # Main CLI runner
-│   └── commands/              # Command implementations
-│       ├── hello_command.dart
-│       ├── config_command.dart
-│       ├── firebase_command.dart  # (if Firebase enabled)
-│       └── server_command.dart    # (if server enabled)
+│   └── cli/
+│       ├── commands.dart      # Declarative command tree
+│       └── handlers/          # Command implementations
+│           ├── hello_handlers.dart
+│           ├── config_handlers.dart
+│           └── server_handlers.dart  # (if server enabled)
 ├── pubspec.yaml
 └── README.md
 ```
 
 ### Adding New Commands
 
-1. **Create Command File** in `lib/commands/`:
+1. **Create Handler File** in `lib/cli/handlers/`:
 
 ```dart
-import 'package:cli_annotations/cli_annotations.dart';
+// lib/cli/handlers/my_handlers.dart
 import 'package:fast_log/fast_log.dart';
 
-part 'my_command.g.dart';
+Future<void> handleDoSomething(Map<String, dynamic> args, Map<String, dynamic> flags) async {
+  final param = args['param'] as String?;
 
-@cliSubcommand
-class MyCommand extends _$MyCommand {
-  /// My custom command description
-  @cliCommand
-  Future<void> doSomething(String param) async {
-    info("Executing command...");
-    print("Result: $param");
-  }
+  info("Executing command...");
+  print("Result: $param");
+  success("Done!");
 }
 ```
 
-2. **Register in Runner** (`lib/arcane_cli_app.dart`):
+2. **Add to Command Tree** (`lib/cli/commands.dart`):
 
 ```dart
-import 'commands/my_command.dart';
+import 'handlers/my_handlers.dart';
 
-@cliRunner
-class ArcaneRunner extends _$ArcaneRunner {
-  // ...
+final List<DartedCommand> commandsTree = [
+  // ... existing commands ...
 
-  @cliMount
-  MyCommand get my => MyCommand();
-}
+  DartedCommand(
+    name: 'my',
+    helperDescription: 'My custom commands',
+    subCommands: [
+      DartedCommand(
+        name: 'do-something',
+        helperDescription: 'Execute my custom action',
+        arguments: [DartedArgument(name: 'param', abbreviation: 'p')],
+        callback: (args, flags) => handleDoSomething(args ?? {}, _boolToMap(flags)),
+      ),
+    ],
+  ),
+];
 ```
 
-3. **Generate Code**:
+3. **Run**:
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
+dart run bin/main.dart my do-something --param "hello"
 ```
 
-### Code Generation Workflow
-
-The CLI uses `cli_gen` for code generation:
-
-```bash
-# One-time build
-dart run build_runner build --delete-conflicting-outputs
-
-# Watch mode (auto-rebuild on changes)
-dart run build_runner watch -d
-```
-
-Generated files (`.g.dart`) are automatically created and should be committed to version control.
+No code generation needed!
 
 ## Environment Variables
 
@@ -376,13 +389,11 @@ final users = await ArcaneAdmin.auth.listUsers();
 
 ## Troubleshooting
 
-### Build Runner Issues
+### Dependency Issues
 
 ```bash
-# Clean and rebuild
+# Clean and reinstall
 dart pub get
-dart run build_runner clean
-dart run build_runner build --delete-conflicting-outputs
 ```
 
 ### Firebase Issues
@@ -399,7 +410,8 @@ dart run build_runner build --delete-conflicting-outputs
 
 ## Learn More
 
-- [cli_gen Documentation](https://pub.dev/packages/cli_gen)
+- [darted_cli Documentation](https://pub.dev/packages/darted_cli)
+- [interact Documentation](https://pub.dev/packages/interact)
 - [Arcane Templates](https://github.com/ArcaneArts/arcane_templates)
 - [fast_log](https://pub.dev/packages/fast_log)
 

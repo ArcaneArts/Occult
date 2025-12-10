@@ -20,16 +20,24 @@ import 'tool_checker.dart';
 class InteractiveWizard {
   final ToolChecker _toolChecker = ToolChecker();
 
+  // Wizard step tracking
+  static const int _totalSteps = 5;
+  int _currentStep = 0;
+
   /// Run the full interactive wizard
   Future<void> run() async {
     _printWelcome();
 
     // Step 1: Check tools
+    _currentStep = 0;
+    UserPrompt.printStepIndicator(_currentStep, _totalSteps, 'Environment Check');
     if (!await _checkTools()) {
       return;
     }
 
     // Step 2: Gather configuration
+    _currentStep = 1;
+    UserPrompt.printStepIndicator(_currentStep, _totalSteps, 'Project Configuration');
     final config = await _gatherConfiguration();
     if (config == null) {
       warn('Setup cancelled');
@@ -37,16 +45,22 @@ class InteractiveWizard {
     }
 
     // Step 3: Confirm configuration
+    _currentStep = 2;
+    UserPrompt.printStepIndicator(_currentStep, _totalSteps, 'Review Settings');
     if (!await _confirmConfiguration(config)) {
       warn('Setup cancelled');
       return;
     }
 
     // Step 4: Execute setup
+    _currentStep = 3;
+    UserPrompt.printStepIndicator(_currentStep, _totalSteps, 'Creating Project');
     await _executeSetup(config);
 
     // Step 5: Optional Firebase setup
+    _currentStep = 4;
     if (config.useFirebase) {
+      UserPrompt.printStepIndicator(_currentStep, _totalSteps, 'Firebase Setup');
       await _offerFirebaseSetup(config);
     }
 
@@ -54,36 +68,43 @@ class InteractiveWizard {
   }
 
   void _printWelcome() {
+    UserPrompt.clearScreen();
     UserPrompt.printBanner(
       'Welcome to Occult Setup Wizard',
-      subtitle: 'Arcane Template System',
+      subtitle: 'Arcane Template System v2.0',
     );
     info('This wizard will help you create a new Arcane project.');
-    print('Use arrow keys to navigate, Enter to select.\n');
+    print('');
+    UserPrompt.printList([
+      'Use ↑↓ arrow keys to navigate menus',
+      'Press Space to toggle selections',
+      'Press Enter to confirm',
+    ]);
+    print('');
   }
 
   Future<bool> _checkTools() async {
-    info('Checking required tools...');
-    print('');
-
     final result = await _toolChecker.checkRequired();
 
     if (!result.allRequiredInstalled) {
+      print('');
       result.printSummary();
-      error('Please install the required tools before continuing.');
+      UserPrompt.printErrorBox(
+        'Missing required tools',
+        hint: 'Install the tools above before continuing.',
+      );
       return false;
     }
 
+    print('');
     success('All required tools are installed!');
     print('');
     return true;
   }
 
   Future<SetupConfig?> _gatherConfiguration() async {
-    print('\u2500' * 60);
-    print('Project Configuration');
-    print('\u2500' * 60);
-    print('');
+    // ── Section 1: Basic Info ──
+    UserPrompt.printDivider(title: 'Basic Information');
 
     // App name
     final appName = await UserPrompt.askString(
@@ -103,19 +124,19 @@ class InteractiveWizard {
     // Base class name (auto-generate suggestion)
     final suggestedClassName = snakeToPascal(appName);
     final baseClassName = await UserPrompt.askString(
-      'Base class name',
+      'Base class name (PascalCase)',
       defaultValue: suggestedClassName,
     );
 
-    // Template selection
-    final templateOptions = TemplateType.values
-        .map((t) => '${t.displayName} - ${t.description}')
-        .toList();
+    // ── Section 2: Template Selection ──
+    UserPrompt.printDivider(title: 'Template Selection');
 
-    final templateIndex = await UserPrompt.showMenu(
-      'Select a template',
-      templateOptions,
-      defaultIndex: 0,
+    // Template selection with descriptions
+    final templateIndex = await UserPrompt.askTheme(
+      'Select a project template',
+      TemplateType.values.map((t) => t.displayName).toList(),
+      TemplateType.values.map((t) => t.description).toList(),
+      initialIndex: 0,
     );
     final template = TemplateType.values[templateIndex];
 
@@ -125,11 +146,14 @@ class InteractiveWizard {
       defaultValue: Directory.current.path,
     );
 
-    // Platform selection (only for Flutter apps, not CLI or Dock)
+    // ── Section 3: Platform Selection ──
     List<String> selectedPlatforms = template.supportedPlatforms;
     if (template.isFlutterApp && template != TemplateType.arcaneDock) {
+      UserPrompt.printDivider(title: 'Target Platforms');
+      print('  Select the platforms you want to target:');
+
       final platformIndices = await UserPrompt.askMultiSelect(
-        'Select target platforms (Space to toggle, Enter to confirm)',
+        'Target platforms (Space to toggle)',
         template.supportedPlatforms,
         defaultSelected: template.supportedPlatforms,
       );
@@ -142,19 +166,38 @@ class InteractiveWizard {
         warn('At least one platform must be selected');
         selectedPlatforms = template.supportedPlatforms;
       }
+
+      // Offer to prioritize platforms
+      if (selectedPlatforms.length > 1) {
+        final prioritize = await UserPrompt.askYesNo(
+          'Would you like to prioritize platform order?',
+          defaultValue: false,
+        );
+
+        if (prioritize) {
+          selectedPlatforms = await UserPrompt.askPrioritize(
+            'Drag to reorder platforms (most important first)',
+            selectedPlatforms,
+          );
+        }
+      }
     }
 
-    // Models package
-    final createModels = await UserPrompt.askYesNo(
-      'Create shared models package?',
-      defaultValue: true,
+    // ── Section 4: Additional Packages ──
+    UserPrompt.printDivider(title: 'Additional Packages');
+
+    // Multi-select for additional features
+    final additionalFeatures = await UserPrompt.askMultiSelectNames(
+      'Select additional packages to create',
+      ['Shared Models Package', 'Server Application'],
+      defaultSelected: ['Shared Models Package'],
     );
 
-    // Server app
-    final createServer = await UserPrompt.askYesNo(
-      'Create server application?',
-      defaultValue: false,
-    );
+    final createModels = additionalFeatures.contains('Shared Models Package');
+    final createServer = additionalFeatures.contains('Server Application');
+
+    // ── Section 5: Firebase Integration ──
+    UserPrompt.printDivider(title: 'Cloud Services');
 
     // Firebase
     final useFirebase = await UserPrompt.askYesNo(
@@ -163,21 +206,22 @@ class InteractiveWizard {
     );
 
     String? firebaseProjectId;
+    bool setupCloudRun = false;
+
     if (useFirebase) {
       firebaseProjectId = await UserPrompt.askString(
         'Firebase project ID',
         validator: (s) => validateFirebaseProjectId(s).isValid,
         validationMessage: 'Invalid Firebase project ID',
       );
-    }
 
-    // Cloud Run (only if server is enabled)
-    bool setupCloudRun = false;
-    if (createServer && useFirebase) {
-      setupCloudRun = await UserPrompt.askYesNo(
-        'Setup Cloud Run for server deployment?',
-        defaultValue: false,
-      );
+      // Cloud Run (only if server is enabled)
+      if (createServer) {
+        setupCloudRun = await UserPrompt.askYesNo(
+          'Setup Cloud Run for server deployment?',
+          defaultValue: false,
+        );
+      }
     }
 
     return SetupConfig(
@@ -203,72 +247,105 @@ class InteractiveWizard {
   }
 
   Future<void> _executeSetup(SetupConfig config) async {
-    print('');
-    print('\u2500' * 60);
-    print('Creating Project');
-    print('\u2500' * 60);
-    print('');
+    UserPrompt.printDivider(title: 'Creating Project');
 
-    // Create projects
-    info('Creating project structure...');
-    final creator = ProjectCreator(config);
-    if (!await creator.createAllProjects()) {
-      error('Failed to create projects');
-      exit(1);
-    }
+    // Create projects with spinner
+    await UserPrompt.withSpinner(
+      'Creating project structure...',
+      () async {
+        final creator = ProjectCreator(config);
+        if (!await creator.createAllProjects()) {
+          throw Exception('Failed to create projects');
+        }
+        // Clean up test folders while we're at it
+        await creator.deleteTestFolders();
+      },
+      doneMessage: '✓ Project structure created',
+    );
 
-    // Copy templates
-    info('Copying template files...');
-    final copier = TemplateCopier(config);
-    await copier.copyAll();
+    // Copy templates with spinner
+    await UserPrompt.withSpinner(
+      'Copying template files...',
+      () async {
+        final copier = TemplateCopier(config);
+        await copier.copyAll();
+      },
+      doneMessage: '✓ Template files copied',
+    );
 
-    // Clean up test folders
-    await creator.deleteTestFolders();
-
-    // Get dependencies
-    info('Installing dependencies...');
+    // Link models if needed
     final depManager = DependencyManager(config);
-
     if (config.createModels) {
-      await depManager.linkModelsToProjects();
+      await UserPrompt.withSpinner(
+        'Linking models package...',
+        () async {
+          await depManager.linkModelsToProjects();
+        },
+        doneMessage: '✓ Models package linked',
+      );
     }
 
-    await depManager.getAllDependencies();
+    // Get dependencies with spinner (this can take a while)
+    await UserPrompt.withSpinner(
+      'Installing dependencies (this may take a moment)...',
+      () async {
+        await depManager.getAllDependencies();
+      },
+      doneMessage: '✓ Dependencies installed',
+    );
 
-    // Run build_runner
-    info('Running code generation...');
-    await depManager.runAllBuildRunners();
+    // Run build_runner with spinner
+    await UserPrompt.withSpinner(
+      'Running code generation...',
+      () async {
+        await depManager.runAllBuildRunners();
+      },
+      doneMessage: '✓ Code generation complete',
+    );
 
     // Generate Firebase configs if enabled
     if (config.useFirebase) {
-      info('Generating Firebase configuration...');
-      final configGen = ConfigGenerator(config);
-      await configGen.generateAll();
+      await UserPrompt.withSpinner(
+        'Generating Firebase configuration...',
+        () async {
+          final configGen = ConfigGenerator(config);
+          await configGen.generateAll();
+        },
+        doneMessage: '✓ Firebase config generated',
+      );
     }
 
     // Generate server files if enabled
     if (config.createServer) {
-      info('Setting up server deployment...');
-      final serverSetup = ServerSetup(config);
-      await serverSetup.generateAll();
+      await UserPrompt.withSpinner(
+        'Setting up server deployment...',
+        () async {
+          final serverSetup = ServerSetup(config);
+          await serverSetup.generateAll();
+        },
+        doneMessage: '✓ Server setup complete',
+      );
     }
 
     // Save configuration
-    final configDir = Directory(p.join(config.outputDir, 'config'));
-    if (!configDir.existsSync()) {
-      await configDir.create(recursive: true);
-    }
-    await config.saveToFile(p.join(configDir.path, 'setup_config.env'));
+    await UserPrompt.withSpinner(
+      'Saving configuration...',
+      () async {
+        final configDir = Directory(p.join(config.outputDir, 'config'));
+        if (!configDir.existsSync()) {
+          await configDir.create(recursive: true);
+        }
+        await config.saveToFile(p.join(configDir.path, 'setup_config.env'));
+      },
+      doneMessage: '✓ Configuration saved',
+    );
 
-    success('Project created successfully!');
+    print('');
+    UserPrompt.printSuccessBox('Project created successfully!');
   }
 
   Future<void> _offerFirebaseSetup(SetupConfig config) async {
-    print('');
-    print('\u2500' * 60);
-    print('Firebase Setup');
-    print('\u2500' * 60);
-    print('');
+    UserPrompt.printDivider(title: 'Firebase Setup');
 
     final setupNow = await UserPrompt.askYesNo(
       'Would you like to setup Firebase now?',
@@ -276,76 +353,117 @@ class InteractiveWizard {
     );
 
     if (!setupNow) {
-      info(
-        'You can run Firebase setup later with: occult deploy firebase-setup',
-      );
+      print('');
+      UserPrompt.printList([
+        'You can run Firebase setup later with:',
+        '  occult deploy firebase-setup',
+      ]);
       return;
     }
 
     final firebase = FirebaseService(config);
 
-    // Login to Firebase
-    info('Logging in to Firebase...');
-    await firebase.login();
+    // Login to Firebase with spinner
+    await UserPrompt.withSpinner(
+      'Logging in to Firebase...',
+      () async {
+        await firebase.login();
+      },
+      doneMessage: '✓ Firebase login complete',
+    );
 
     // Login to gcloud if Cloud Run enabled
     if (config.setupCloudRun) {
-      info('Logging in to Google Cloud...');
-      await firebase.gcloudLogin();
+      await UserPrompt.withSpinner(
+        'Logging in to Google Cloud...',
+        () async {
+          await firebase.gcloudLogin();
+        },
+        doneMessage: '✓ Google Cloud login complete',
+      );
     }
 
-    // Configure FlutterFire
-    info('Configuring FlutterFire...');
-    if (!await firebase.configureFlutterFire()) {
-      warn('FlutterFire configuration failed. You can retry later.');
+    // Configure FlutterFire with spinner
+    final flutterFireSuccess = await UserPrompt.withSpinner(
+      'Configuring FlutterFire...',
+      () async {
+        return await firebase.configureFlutterFire();
+      },
+      doneMessage: '✓ FlutterFire configured',
+    );
+
+    if (!flutterFireSuccess) {
+      UserPrompt.printErrorBox(
+        'FlutterFire configuration failed',
+        hint: 'You can retry with: occult deploy firebase-setup',
+      );
     }
 
     // Enable APIs
     if (config.setupCloudRun) {
-      info('Enabling Google Cloud APIs...');
-      await firebase.enableGoogleApis();
+      await UserPrompt.withSpinner(
+        'Enabling Google Cloud APIs...',
+        () async {
+          await firebase.enableGoogleApis();
+        },
+        doneMessage: '✓ APIs enabled',
+      );
     }
 
-    success('Firebase setup complete!');
+    print('');
+    UserPrompt.printSuccessBox('Firebase setup complete!');
   }
 
   void _printSuccess(SetupConfig config) {
     UserPrompt.printBanner('Project Created Successfully!');
 
-    print('Created:');
-    print('  \u2022 ${config.appName}/ - Main application');
+    // List created packages
+    final createdItems = <String>[
+      '${config.appName}/ - Main application',
+    ];
     if (config.createModels) {
-      print('  \u2022 ${config.modelsPackageName}/ - Shared models package');
+      createdItems.add('${config.modelsPackageName}/ - Shared models package');
     }
     if (config.createServer) {
-      print('  \u2022 ${config.serverPackageName}/ - Server application');
+      createdItems.add('${config.serverPackageName}/ - Server application');
     }
-    print('  \u2022 config/ - Configuration files');
-    print('  \u2022 references/ - Library documentation');
+    createdItems.add('config/ - Configuration files');
+    createdItems.add('references/ - Library documentation');
 
-    print('');
-    print('Next steps:');
-    print('  cd ${config.outputDir}/${config.appName}');
+    print('Created:');
+    UserPrompt.printList(createdItems);
+
+    // Next steps
+    UserPrompt.printDivider(title: 'Next Steps');
+
+    final nextSteps = <String>[
+      'cd ${config.outputDir}/${config.appName}',
+    ];
+
     if (config.template.isFlutterApp) {
-      print('  flutter run');
+      nextSteps.add('flutter run');
     } else {
-      print('  dart run bin/main.dart --help');
+      nextSteps.add('dart run bin/main.dart --help');
     }
 
+    UserPrompt.printNumberedList(nextSteps);
+
+    // Firebase deployment commands
     if (config.useFirebase) {
-      print('');
-      print('Firebase deployment:');
-      print('  occult deploy all');
+      UserPrompt.printDivider(title: 'Firebase Deployment');
+      UserPrompt.printList(['occult deploy all']);
     }
 
+    // Server deployment commands
     if (config.createServer) {
-      print('');
-      print('Server deployment:');
-      print('  cd ${config.serverPackageName}');
-      print('  ./script_deploy.sh');
+      UserPrompt.printDivider(title: 'Server Deployment');
+      UserPrompt.printList([
+        'cd ${config.serverPackageName}',
+        './script_deploy.sh',
+      ]);
     }
 
     print('');
-    success('Happy coding!');
+    UserPrompt.printSuccessBox('Happy coding!');
   }
 }

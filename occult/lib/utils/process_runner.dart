@@ -22,8 +22,7 @@ class ProcessResult {
       'ProcessResult(exitCode: $exitCode, success: $success, stdout: ${stdout.length} chars, stderr: ${stderr.length} chars)';
 }
 
-/// User's choice when a command fails
-enum RetryChoice { retry, skip, abort }
+// RetryChoice is now defined in user_prompt.dart
 
 /// Exception thrown when user chooses to abort
 class AbortException implements Exception {
@@ -123,12 +122,12 @@ class ProcessRunner {
 
       final choice = await UserPrompt.askRetryChoice(opName);
       switch (choice) {
-        case 'r':
+        case RetryChoice.retry:
           attempt = 0; // Reset retry counter
           continue;
-        case 's':
+        case RetryChoice.skip:
           return null;
-        case 'a':
+        case RetryChoice.abort:
           throw AbortException();
       }
     }

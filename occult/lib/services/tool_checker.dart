@@ -1,9 +1,8 @@
 import 'dart:io';
 
-import 'package:fast_log/fast_log.dart';
-
 import '../models/tool_status.dart';
 import '../utils/process_runner.dart';
+import '../utils/user_prompt.dart';
 
 /// Service for checking CLI tool availability
 class ToolChecker {
@@ -197,61 +196,86 @@ class ToolChecker {
     );
   }
 
-  /// Check all required tools
+  /// Check all required tools with spinner
   Future<ToolCheckResult> checkRequired() async {
-    info('Checking required tools...');
-
-    final tools = await Future.wait([checkFlutter(), checkDart()]);
-
-    return ToolCheckResult(tools: tools);
+    return await UserPrompt.withSpinner(
+      'Checking required tools...',
+      () async {
+        final tools = await Future.wait([checkFlutter(), checkDart()]);
+        return ToolCheckResult(tools: tools);
+      },
+      doneMessage: '✓ Tool check complete',
+    );
   }
 
-  /// Check all tools (required and optional)
+  /// Check all tools (required and optional) with progress
   Future<ToolCheckResult> checkAll() async {
-    info('Checking all tools...');
+    final toolCheckers = [
+      ('Flutter', checkFlutter),
+      ('Dart', checkDart),
+      ('Firebase CLI', checkFirebase),
+      ('FlutterFire CLI', checkFlutterFire),
+      ('Google Cloud SDK', checkGcloud),
+      ('Docker', checkDocker),
+      ('npm', checkNpm),
+      ('CocoaPods', checkCocoaPods),
+      ('Homebrew', checkHomebrew),
+    ];
 
-    final tools = await Future.wait([
-      checkFlutter(),
-      checkDart(),
-      checkFirebase(),
-      checkFlutterFire(),
-      checkGcloud(),
-      checkDocker(),
-      checkNpm(),
-      checkCocoaPods(),
-      checkHomebrew(),
-    ]);
+    final tools = <ToolStatus>[];
+
+    // Show progress for each tool check
+    for (int i = 0; i < toolCheckers.length; i++) {
+      final (name, checker) = toolCheckers[i];
+      UserPrompt.showProgress(i, toolCheckers.length, 'Checking $name...');
+      tools.add(await checker());
+    }
+    UserPrompt.showProgress(
+      toolCheckers.length,
+      toolCheckers.length,
+      'All tools checked!',
+    );
 
     return ToolCheckResult(tools: tools);
   }
 
-  /// Check tools needed for Firebase
+  /// Check tools needed for Firebase with spinner
   Future<ToolCheckResult> checkFirebaseTools() async {
-    info('Checking Firebase tools...');
-
-    final tools = await Future.wait([
-      checkFirebase(),
-      checkFlutterFire(),
-      checkNpm(),
-    ]);
-
-    return ToolCheckResult(tools: tools);
+    return await UserPrompt.withSpinner(
+      'Checking Firebase tools...',
+      () async {
+        final tools = await Future.wait([
+          checkFirebase(),
+          checkFlutterFire(),
+          checkNpm(),
+        ]);
+        return ToolCheckResult(tools: tools);
+      },
+      doneMessage: '✓ Firebase tools checked',
+    );
   }
 
-  /// Check tools needed for server deployment
+  /// Check tools needed for server deployment with spinner
   Future<ToolCheckResult> checkServerTools() async {
-    info('Checking server deployment tools...');
-
-    final tools = await Future.wait([checkDocker(), checkGcloud()]);
-
-    return ToolCheckResult(tools: tools);
+    return await UserPrompt.withSpinner(
+      'Checking server deployment tools...',
+      () async {
+        final tools = await Future.wait([checkDocker(), checkGcloud()]);
+        return ToolCheckResult(tools: tools);
+      },
+      doneMessage: '✓ Server tools checked',
+    );
   }
 
-  /// Run flutter doctor and return the output
+  /// Run flutter doctor with spinner and return the output
   Future<String> runFlutterDoctor() async {
-    info('Running flutter doctor...');
-
-    final result = await _runner.run('flutter', ['doctor', '-v']);
-    return result.stdout;
+    return await UserPrompt.withSpinner(
+      'Running flutter doctor (this may take a moment)...',
+      () async {
+        final result = await _runner.run('flutter', ['doctor', '-v']);
+        return result.stdout;
+      },
+      doneMessage: '✓ Flutter doctor complete',
+    );
   }
 }

@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:yaml/yaml.dart';
-
 import 'template_info.dart';
 
 /// Configuration for project setup
