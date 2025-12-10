@@ -1,5 +1,13 @@
 import 'dart:io';
 
+String get _safeCurrentDir {
+  try {
+    return Directory.current.path;
+  } catch (_) {
+    return '/';
+  }
+}
+
 /// Template types available for project creation
 enum TemplateType {
   arcaneTemplate(
@@ -104,7 +112,7 @@ class WizardConfig {
     this.useFirebase = false,
     this.firebaseProjectId,
     this.setupCloudRun = false,
-  })  : outputDir = outputDir ?? Directory.current.path,
+  })  : outputDir = outputDir ?? _safeCurrentDir,
         selectedPlatforms =
             selectedPlatforms ?? TemplateType.arcaneTemplate.platforms.toList();
 
