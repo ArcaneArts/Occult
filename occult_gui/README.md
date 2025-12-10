@@ -47,12 +47,12 @@ flutter run
 - Output directory
 
 ### 2. Template Selection
-| Template | Type | Platforms |
-|----------|------|-----------|
-| Basic Arcane | Flutter | All |
-| Beamer Navigation | Flutter | All |
-| Desktop Tray | Flutter | Desktop only |
-| Dart CLI | Dart | - |
+| Template          | Type    | Platforms    |
+|-------------------|---------|--------------|
+| Basic Arcane      | Flutter | All          |
+| Beamer Navigation | Flutter | All          |
+| Desktop Tray      | Flutter | Desktop only |
+| Dart CLI          | Dart    | -            |
 
 ### 3. Options
 - **Platform Selection** - Choose which platforms to target (Flutter apps)

@@ -109,30 +109,42 @@ class UserPrompt {
     Map<String, String> config, {
     String title = 'Configuration Preview',
   }) {
-    const int width = 60;
-    final line = '\u2500' * width;
+    // Calculate width based on longest content
+    int maxContentLen = title.length;
+    for (final entry in config.entries) {
+      final lineLen = '${entry.key}: ${entry.value}'.length;
+      if (lineLen > maxContentLen) maxContentLen = lineLen;
+    }
+    // Box structure: │ content │ = content + 4 chars for "│ " and " │"
+    // Line width = content width + 2 for the spaces inside borders
+    final innerWidth = (maxContentLen + 2).clamp(38, 78);
+    final line = '\u2500' * innerWidth;
 
     print('');
     print('\u256d$line\u256e');
-    _printBoxLine(title, width, center: true);
+    _printBoxLine(title, innerWidth, center: true);
     print('\u251c$line\u2524');
 
     for (final entry in config.entries) {
-      _printBoxLine('${entry.key}: ${entry.value}', width);
+      _printBoxLine('${entry.key}: ${entry.value}', innerWidth);
     }
 
     print('\u2570$line\u256f');
   }
 
-  static void _printBoxLine(String text, int width, {bool center = false}) {
+  static void _printBoxLine(String text, int innerWidth, {bool center = false}) {
+    // innerWidth is the width between the │ chars (includes the space padding)
+    // So actual content area is innerWidth - 2 for the spaces
+    final contentWidth = innerWidth - 2;
     String content;
     if (center) {
-      final padding = (width - text.length) ~/ 2;
-      content = ' ' * padding + text + ' ' * (width - padding - text.length);
+      final leftPad = (contentWidth - text.length) ~/ 2;
+      final rightPad = contentWidth - text.length - leftPad;
+      content = ' ' * leftPad + text + ' ' * rightPad;
     } else {
-      content = text.length > width
-          ? text.substring(0, width)
-          : text.padRight(width);
+      content = text.length > contentWidth
+          ? text.substring(0, contentWidth)
+          : text.padRight(contentWidth);
     }
     print('\u2502 $content \u2502');
   }
@@ -159,23 +171,31 @@ class UserPrompt {
 
   /// Print a header banner
   static void printBanner(String title, {String? subtitle}) {
-    const width = 60;
-    final line = '\u2550' * width;
+    // Calculate width based on content
+    int maxContentLen = title.length;
+    if (subtitle != null && subtitle.length > maxContentLen) {
+      maxContentLen = subtitle.length;
+    }
+    // Inner width includes space padding on each side
+    final innerWidth = (maxContentLen + 4).clamp(38, 78);
+    final line = '\u2550' * innerWidth;
 
     print('');
     print('\u2554$line\u2557');
-    _printBannerLine(title, width);
+    _printBannerLine(title, innerWidth);
     if (subtitle != null) {
-      _printBannerLine(subtitle, width);
+      _printBannerLine(subtitle, innerWidth);
     }
     print('\u255a$line\u255d');
     print('');
   }
 
-  static void _printBannerLine(String text, int width) {
-    final padding = (width - text.length) ~/ 2;
-    final content =
-        ' ' * padding + text + ' ' * (width - padding - text.length);
+  static void _printBannerLine(String text, int innerWidth) {
+    // Content width is innerWidth minus 2 for space padding
+    final contentWidth = innerWidth - 2;
+    final leftPad = (contentWidth - text.length) ~/ 2;
+    final rightPad = contentWidth - text.length - leftPad;
+    final content = ' ' * leftPad + text + ' ' * rightPad;
     print('\u2551 $content \u2551');
   }
 
