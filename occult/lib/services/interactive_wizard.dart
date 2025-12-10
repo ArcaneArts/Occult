@@ -54,24 +54,12 @@ class InteractiveWizard {
   }
 
   void _printWelcome() {
-    print('');
-    print('\u2554' + '\u2550' * 60 + '\u2557');
-    print('\u2551' + ' ' * 60 + '\u2551');
-    print(
-      '\u2551' +
-          '              Welcome to Occult Setup Wizard'.padRight(60) +
-          '\u2551',
+    UserPrompt.printBanner(
+      'Welcome to Occult Setup Wizard',
+      subtitle: 'Arcane Template System',
     );
-    print(
-      '\u2551' +
-          '               Arcane Template System'.padRight(60) +
-          '\u2551',
-    );
-    print('\u2551' + ' ' * 60 + '\u2551');
-    print('\u255a' + '\u2550' * 60 + '\u255d');
-    print('');
     info('This wizard will help you create a new Arcane project.');
-    print('');
+    print('Use arrow keys to navigate, Enter to select.\n');
   }
 
   Future<bool> _checkTools() async {
@@ -99,7 +87,7 @@ class InteractiveWizard {
 
     // App name
     final appName = await UserPrompt.askString(
-      'Enter app name (snake_case)',
+      'App name (snake_case)',
       defaultValue: 'my_app',
       validator: (s) => validateAppName(s).isValid,
       validationMessage:
@@ -108,31 +96,30 @@ class InteractiveWizard {
 
     // Organization domain
     final orgDomain = await UserPrompt.askString(
-      'Enter organization domain',
+      'Organization domain',
       defaultValue: 'com.example',
     );
 
     // Base class name (auto-generate suggestion)
     final suggestedClassName = snakeToPascal(appName);
     final baseClassName = await UserPrompt.askString(
-      'Enter base class name',
+      'Base class name',
       defaultValue: suggestedClassName,
     );
 
     // Template selection
-    print('');
-    print('Available Templates:');
+    final templateOptions = TemplateType.values
+        .map((t) => '${t.displayName} - ${t.description}')
+        .toList();
+
     final templateIndex = await UserPrompt.showMenu(
-      'Select a template:',
-      TemplateType.values
-          .map((t) => '${t.displayName}\n     ${t.description}')
-          .toList(),
+      'Select a template',
+      templateOptions,
       defaultIndex: 0,
     );
     final template = TemplateType.values[templateIndex];
 
     // Output directory
-    print('');
     final outputDir = await UserPrompt.askString(
       'Output directory',
       defaultValue: Directory.current.path,
@@ -141,12 +128,15 @@ class InteractiveWizard {
     // Platform selection (only for Flutter apps, not CLI or Dock)
     List<String> selectedPlatforms = template.supportedPlatforms;
     if (template.isFlutterApp && template != TemplateType.arcaneDock) {
-      print('');
-      selectedPlatforms = await UserPrompt.askMultiSelect(
-        'Select target platforms:',
+      final platformIndices = await UserPrompt.askMultiSelect(
+        'Select target platforms (Space to toggle, Enter to confirm)',
         template.supportedPlatforms,
         defaultSelected: template.supportedPlatforms,
       );
+
+      selectedPlatforms = platformIndices
+          .map((i) => template.supportedPlatforms[i])
+          .toList();
 
       if (selectedPlatforms.isEmpty) {
         warn('At least one platform must be selected');
@@ -155,7 +145,6 @@ class InteractiveWizard {
     }
 
     // Models package
-    print('');
     final createModels = await UserPrompt.askYesNo(
       'Create shared models package?',
       defaultValue: true,
@@ -168,7 +157,6 @@ class InteractiveWizard {
     );
 
     // Firebase
-    print('');
     final useFirebase = await UserPrompt.askYesNo(
       'Enable Firebase integration?',
       defaultValue: false,
@@ -177,7 +165,7 @@ class InteractiveWizard {
     String? firebaseProjectId;
     if (useFirebase) {
       firebaseProjectId = await UserPrompt.askString(
-        'Enter Firebase project ID',
+        'Firebase project ID',
         validator: (s) => validateFirebaseProjectId(s).isValid,
         validationMessage: 'Invalid Firebase project ID',
       );
@@ -208,7 +196,6 @@ class InteractiveWizard {
   }
 
   Future<bool> _confirmConfiguration(SetupConfig config) async {
-    print('');
     UserPrompt.printConfigPreview(config.toDisplayMap());
     print('');
 
@@ -323,17 +310,7 @@ class InteractiveWizard {
   }
 
   void _printSuccess(SetupConfig config) {
-    print('');
-    print('\u2554' + '\u2550' * 60 + '\u2557');
-    print('\u2551' + ' ' * 60 + '\u2551');
-    print(
-      '\u2551' +
-          '              Project Created Successfully!'.padRight(60) +
-          '\u2551',
-    );
-    print('\u2551' + ' ' * 60 + '\u2551');
-    print('\u255a' + '\u2550' * 60 + '\u255d');
-    print('');
+    UserPrompt.printBanner('Project Created Successfully!');
 
     print('Created:');
     print('  \u2022 ${config.appName}/ - Main application');

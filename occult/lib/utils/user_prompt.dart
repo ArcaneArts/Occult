@@ -1,57 +1,39 @@
 import 'dart:io';
 
 import 'package:fast_log/fast_log.dart';
+import 'package:interact/interact.dart';
 
-/// Utility class for interactive user prompts
+/// Modern interactive CLI prompts with arrow key navigation
 class UserPrompt {
-  /// Ask a yes/no question
+  /// Ask a yes/no question with arrow key selection
   static Future<bool> askYesNo(
     String question, {
     bool defaultValue = true,
   }) async {
-    final defaultHint = defaultValue ? '[Y/n]' : '[y/N]';
-    stdout.write('$question $defaultHint: ');
-
-    final input = stdin.readLineSync()?.trim().toLowerCase();
-
-    if (input == null || input.isEmpty) {
-      return defaultValue;
-    }
-
-    return input == 'y' || input == 'yes';
+    return Confirm(
+      prompt: question,
+      defaultValue: defaultValue,
+      waitForNewLine: true,
+    ).interact();
   }
 
-  /// Ask for a string input
+  /// Ask for a string input with validation
   static Future<String> askString(
     String question, {
     String? defaultValue,
     bool Function(String)? validator,
     String? validationMessage,
   }) async {
-    while (true) {
-      if (defaultValue != null) {
-        stdout.write('$question [$defaultValue]: ');
-      } else {
-        stdout.write('$question: ');
-      }
-
-      final input = stdin.readLineSync()?.trim();
-
-      if (input == null || input.isEmpty) {
-        if (defaultValue != null) {
-          return defaultValue;
-        }
-        warn('Input required');
-        continue;
-      }
-
-      if (validator != null && !validator(input)) {
-        warn(validationMessage ?? 'Invalid input');
-        continue;
-      }
-
-      return input;
-    }
+    return Input(
+      prompt: question,
+      defaultValue: defaultValue ?? '',
+      validator: validator != null
+          ? (value) {
+              if (validator(value)) return true;
+              throw ValidationError(validationMessage ?? 'Invalid input');
+            }
+          : null,
+    ).interact();
   }
 
   /// Ask for a number input
@@ -59,49 +41,82 @@ class UserPrompt {
     String question, {
     required int defaultValue,
   }) async {
-    stdout.write('$question [$defaultValue]: ');
-
-    final input = stdin.readLineSync()?.trim();
-
-    if (input == null || input.isEmpty) {
-      return defaultValue;
-    }
-
-    return int.tryParse(input) ?? defaultValue;
+    final result = Input(
+      prompt: question,
+      defaultValue: defaultValue.toString(),
+      validator: (value) {
+        if (int.tryParse(value) != null) return true;
+        throw ValidationError('Please enter a valid number');
+      },
+    ).interact();
+    return int.parse(result);
   }
 
-  /// Show a menu and get user selection
+  /// Show a menu with arrow key navigation and get user selection
   static Future<int> showMenu(
     String title,
     List<String> options, {
     int? defaultIndex,
   }) async {
-    print('\n$title');
-    print('\u2500' * 60);
+    print('');
+    return Select(
+      prompt: title,
+      options: options,
+      initialIndex: defaultIndex ?? 0,
+    ).interact();
+  }
 
-    for (int i = 0; i < options.length; i++) {
-      final marker = (defaultIndex != null && i == defaultIndex) ? '*' : ' ';
-      print('$marker ${i + 1}. ${options[i]}');
+  /// Multi-select with checkboxes and arrow key navigation
+  static Future<List<int>> askMultiSelect(
+    String title,
+    List<String> options, {
+    List<String>? defaultSelected,
+  }) async {
+    // Convert defaultSelected names to boolean list
+    final defaults = options.map((opt) {
+      return defaultSelected?.contains(opt) ?? true;
+    }).toList();
+
+    print('');
+    return MultiSelect(
+      prompt: title,
+      options: options,
+      defaults: defaults,
+    ).interact();
+  }
+
+  /// Multi-select that returns the selected option names
+  static Future<List<String>> askMultiSelectNames(
+    String title,
+    List<String> options, {
+    List<String>? defaultSelected,
+  }) async {
+    final indices = await askMultiSelect(
+      title,
+      options,
+      defaultSelected: defaultSelected,
+    );
+    return indices.map((i) => options[i]).toList();
+  }
+
+  /// Show a spinner while performing an async operation
+  static Future<T> withSpinner<T>(
+    String message,
+    Future<T> Function() action,
+  ) async {
+    final spinner = Spinner(
+      icon: '⠋',
+      rightPrompt: (done) => done ? 'Done!' : message,
+    ).interact();
+
+    try {
+      final result = await action();
+      spinner.done();
+      return result;
+    } catch (e) {
+      spinner.done();
+      rethrow;
     }
-
-    print('\u2500' * 60);
-    final defaultHint = defaultIndex != null ? ' [${defaultIndex + 1}]' : '';
-    stdout.write('Enter selection (1-${options.length})$defaultHint: ');
-
-    final input = stdin.readLineSync()?.trim();
-
-    if (input == null || input.isEmpty) {
-      return defaultIndex ?? 0;
-    }
-
-    final selection = int.tryParse(input);
-
-    if (selection == null || selection < 1 || selection > options.length) {
-      warn('Invalid selection, defaulting to ${(defaultIndex ?? 0) + 1}');
-      return defaultIndex ?? 0;
-    }
-
-    return selection - 1;
   }
 
   /// Show a pretty configuration preview box
@@ -149,7 +164,7 @@ class UserPrompt {
     print('\u2502 $content \u2502');
   }
 
-  /// Show progress during operations
+  /// Show progress bar during operations
   static void showProgress(int current, int total, String message) {
     final percent = (current / total * 100).toStringAsFixed(0);
     final bar = _makeProgressBar(current, total, 30);
@@ -200,23 +215,18 @@ class UserPrompt {
   }
 
   /// Ask user for retry choice after failure
-  /// Returns: 'r' = retry, 's' = skip, 'a' = abort
   static Future<String> askRetryChoice(String operationName) async {
     print('');
     warn('$operationName failed.');
-    stdout.write('(r)etry, (s)kip, or (a)bort? [r]: ');
 
-    final input = stdin.readLineSync()?.trim().toLowerCase();
+    final options = ['Retry', 'Skip', 'Abort'];
+    final choice = Select(
+      prompt: 'What would you like to do?',
+      options: options,
+      initialIndex: 0,
+    ).interact();
 
-    if (input == null || input.isEmpty || input == 'r' || input == 'retry') {
-      return 'r';
-    } else if (input == 's' || input == 'skip') {
-      return 's';
-    } else if (input == 'a' || input == 'abort') {
-      return 'a';
-    }
-
-    return 'r'; // Default to retry
+    return ['r', 's', 'a'][choice];
   }
 
   /// Press enter to continue
@@ -227,50 +237,38 @@ class UserPrompt {
     stdin.readLineSync();
   }
 
-  /// Show a multi-select checkbox menu for platforms
-  /// Returns list of selected platform names
-  static Future<List<String>> askMultiSelect(
-    String title,
-    List<String> options, {
-    List<String>? defaultSelected,
+  /// Password input (hidden)
+  static Future<String> askPassword(
+    String prompt, {
+    bool confirm = false,
   }) async {
-    final selected = Set<String>.from(defaultSelected ?? options);
+    return Password(
+      prompt: prompt,
+      confirmation: confirm,
+    ).interact();
+  }
 
-    print('\n$title');
-    print('\u2500' * 60);
-    print('Toggle with number, Enter when done:');
-    print('\u2500' * 60);
-
-    while (true) {
-      // Display options with checkboxes
-      for (int i = 0; i < options.length; i++) {
-        final isSelected = selected.contains(options[i]);
-        final checkbox = isSelected ? '[\u2713]' : '[ ]';
-        print('  ${i + 1}. $checkbox ${options[i]}');
-      }
-      print('\u2500' * 60);
-      stdout.write('Toggle (1-${options.length}) or Enter to confirm: ');
-
-      final input = stdin.readLineSync()?.trim();
-
-      if (input == null || input.isEmpty) {
-        // User pressed Enter, return selection
-        return selected.toList();
-      }
-
-      final selection = int.tryParse(input);
-      if (selection != null && selection >= 1 && selection <= options.length) {
-        final option = options[selection - 1];
-        if (selected.contains(option)) {
-          selected.remove(option);
-        } else {
-          selected.add(option);
-        }
-        // Clear and redraw (move cursor up)
-        for (int i = 0; i < options.length + 3; i++) {
-          stdout.write('\x1B[1A\x1B[2K'); // Move up and clear line
-        }
+  /// Theme selector with preview
+  static Future<int> askTheme(
+    String prompt,
+    List<String> themes,
+    List<String> descriptions, {
+    int initialIndex = 0,
+  }) async {
+    // Build options with descriptions
+    final options = <String>[];
+    for (int i = 0; i < themes.length; i++) {
+      if (i < descriptions.length) {
+        options.add('${themes[i]} - ${descriptions[i]}');
+      } else {
+        options.add(themes[i]);
       }
     }
+
+    return Select(
+      prompt: prompt,
+      options: options,
+      initialIndex: initialIndex,
+    ).interact();
   }
 }
